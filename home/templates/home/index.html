@@ -1,0 +1,277 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Out of the Sky - Real-Time Flight Tracking & Aviation Intelligence</title>
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <h2>✈️ Out of the Sky</h2>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#tracking">Tracking</a></li>
+                <li><a href="#insights">Insights</a></li>
+                <li><a href="#team">Team</a></li>
+                <li><a href="#" class="btn-primary">Launch App</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-overlay"></div>
+        <div class="container hero-content">
+            <div class="hero-text">
+                <h1 class="hero-title">Out of the Sky</h1>
+                <p class="hero-subtitle">Track Every Flight, Anywhere in the World</p>
+                <p class="hero-description">
+                    Real-time flight tracking, personalized dashboards, weather insights, and AI-powered analytics. 
+                    Whether you're a frequent traveler or aviation enthusiast, stay connected to the skies like never before.
+                </p>
+                <div class="hero-buttons">
+                    <a href="#" class="btn btn-primary-large">Start Tracking Flights</a>
+                    <a href="#features" class="btn btn-secondary-large">Explore Features</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Key Features Overview -->
+    <section id="features" class="features-overview">
+        <div class="container">
+            <h2 class="section-title">Everything You Need to Track Flights</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🌍</div>
+                    <h3>Live Flight Map</h3>
+                    <p>Watch aircraft in real-time on an interactive world map. Zoom, pan, and click any flight for instant details.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Personal Dashboard</h3>
+                    <p>Manage multiple flights in one place. Add, remove, and monitor all your tracked flights with live status updates.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔍</div>
+                    <h3>Smart Search</h3>
+                    <p>Find flights instantly by number, airline, or airport. Filter by status like "airborne" or "delayed" for quick access.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🌤️</div>
+                    <h3>Weather Insights</h3>
+                    <p>Get airport weather forecasts and delay predictions to plan around disruptions before they happen.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tracking Features -->
+    <section id="tracking" class="tracking-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Comprehensive Flight Tracking</h2>
+                <p class="section-subtitle">Monitor every aspect of your flights with precision and ease</p>
+            </div>
+            <div class="tracking-grid">
+                <div class="tracking-feature">
+                    <div class="tracking-icon">🛫</div>
+                    <h3>Flight Details</h3>
+                    <p>View scheduled and actual departure/arrival times with real-time status updates—always know if your flight is on time.</p>
+                </div>
+                <div class="tracking-feature">
+                    <div class="tracking-icon">🚪</div>
+                    <h3>Terminal & Gate Info</h3>
+                    <p>Get live gate and terminal assignments with instant updates for changes. Navigate airports with confidence.</p>
+                </div>
+                <div class="tracking-feature">
+                    <div class="tracking-icon">📍</div>
+                    <h3>Location-Based Tracking</h3>
+                    <p>Discover flights near you using GPS. See what's flying overhead and explore aviation activity in your area.</p>
+                </div>
+                <div class="tracking-feature">
+                    <div class="tracking-icon">🏢</div>
+                    <h3>Airline Tracking</h3>
+                    <p>Filter by your preferred airline to see only the flights that matter. Perfect for loyalty program members.</p>
+                </div>
+                <div class="tracking-feature">
+                    <div class="tracking-icon">🔔</div>
+                    <h3>Smart Notifications</h3>
+                    <p>Receive push alerts for delays, cancellations, and gate changes. Never miss critical flight updates.</p>
+                </div>
+                <div class="tracking-feature">
+                    <div class="tracking-icon">👤</div>
+                    <h3>Account Personalization</h3>
+                    <p>Save your tracked flights, preferred airlines, and filters. Your preferences sync across all devices.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Insights & Intelligence -->
+    <section id="insights" class="insights-section">
+        <div class="container">
+            <div class="insights-content">
+                <div class="insights-text">
+                    <h2>AI-Powered Aviation Intelligence</h2>
+                    <p class="insights-intro">
+                        Go beyond basic tracking with deep insights powered by artificial intelligence and historical data analysis.
+                    </p>
+                    
+                    <div class="insight-item">
+                        <div class="insight-icon">✈️</div>
+                        <div class="insight-details">
+                            <h4>Aircraft Statistics</h4>
+                            <p>Learn about aircraft models, seating capacity, cruising speeds, and usage trends for every flight you track.</p>
+                        </div>
+                    </div>
+
+                    <div class="insight-item">
+                        <div class="insight-icon">🤖</div>
+                        <div class="insight-details">
+                            <h4>AI Flight Insights</h4>
+                            <p>Get estimated flight durations based on historical data and compare routes by efficiency and speed rankings.</p>
+                        </div>
+                    </div>
+
+                    <div class="insight-item">
+                        <div class="insight-icon">📈</div>
+                        <div class="insight-details">
+                            <h4>Performance History</h4>
+                            <p>View on-time performance records, average delays, and cancellation rates to choose the most reliable flights.</p>
+                        </div>
+                    </div>
+
+                    <div class="insight-item">
+                        <div class="insight-icon">🛡️</div>
+                        <div class="insight-details">
+                            <h4>Reliable & Resilient</h4>
+                            <p>The app continues working even during API outages with cached data and clear status indicators.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="insights-image">
+                    <div class="image-placeholder">
+                        <p>📊 Analytics Dashboard</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Use Cases -->
+    <section class="use-cases">
+        <div class="container">
+            <h2 class="section-title">Built for Every Type of Flyer</h2>
+            <div class="use-cases-grid">
+                <div class="use-case-card">
+                    <h3>🧳 Frequent Travelers</h3>
+                    <p>Manage multiple trips, track connections, and get alerts for delays. Your personal flight command center.</p>
+                </div>
+                <div class="use-case-card">
+                    <h3>✈️ Aviation Enthusiasts</h3>
+                    <p>Explore flights worldwide, discover aircraft details, and track aviation activity in your local area.</p>
+                </div>
+                <div class="use-case-card">
+                    <h3>👨‍👩‍👧‍👦 Family & Friends</h3>
+                    <p>Track loved ones' flights in real-time, know when to pick them up, and stay informed about delays.</p>
+                </div>
+                <div class="use-case-card">
+                    <h3>💼 Business Professionals</h3>
+                    <p>Monitor your preferred airline, optimize travel times, and make data-driven booking decisions.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    <section id="team" class="team">
+        <div class="container">
+            <h2 class="section-title">Meet the Team</h2>
+            <p class="team-subtitle">The aviation enthusiasts behind Out of the Sky</p>
+            <div class="team-grid">
+                <div class="team-card">
+                    <div class="team-avatar">EB</div>
+                    <h3>Ethan Briggs</h3>
+                    <p class="team-role">Developer</p>
+                </div>
+                <div class="team-card">
+                    <div class="team-avatar">AL</div>
+                    <h3>Alex Lang</h3>
+                    <p class="team-role">Developer</p>
+                </div>
+                <div class="team-card">
+                    <div class="team-avatar">EK</div>
+                    <h3>Enzo Knapp</h3>
+                    <p class="team-role">Developer</p>
+                </div>
+                <div class="team-card">
+                    <div class="team-avatar">MS</div>
+                    <h3>Mason Sowanick</h3>
+                    <p class="team-role">Developer</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <div class="container">
+            <h2>Ready for Takeoff?</h2>
+            <p>Start tracking flights worldwide with real-time data, AI insights, and personalized alerts.</p>
+            <a href="#" class="btn btn-light-large">Launch Application</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Out of the Sky</h3>
+                    <p>Real-time flight tracking and aviation intelligence for travelers and enthusiasts worldwide.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Features</h4>
+                    <ul>
+                        <li><a href="#">Live Flight Map</a></li>
+                        <li><a href="#">Personal Dashboard</a></li>
+                        <li><a href="#">Weather Insights</a></li>
+                        <li><a href="#">AI Analytics</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="#">Documentation</a></li>
+                        <li><a href="#">API Access</a></li>
+                        <li><a href="#">Help Center</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Connect</h4>
+                    <ul>
+                        <li><a href="#">Contact Us</a></li>
+                        <li><a href="#">GitHub</a></li>
+                        <li><a href="#">Feedback</a></li>
+                        <li><a href="#">Support</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Out of the Sky. Created by Ethan Briggs, Alex Lang, Enzo Knapp, and Mason Sowanick.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
