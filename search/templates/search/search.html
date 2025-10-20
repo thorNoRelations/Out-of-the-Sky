@@ -1,0 +1,305 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Flights - Out of the Sky</title>
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <link rel="stylesheet" href="{% static 'search.css' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <h2>✈️ Out of the Sky</h2>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="/">Home</a></li>
+                <li><a href="/search">Search</a></li>
+                <li><a href="#" class="btn-primary">Dashboard</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Search Section -->
+    <section class="search-section">
+        <div class="container">
+            <div class="search-header">
+                <h1>🔍 Search Flights</h1>
+                <p>Find flights by number, airline, airport, or status</p>
+            </div>
+
+            <!-- Search Form -->
+            <div class="search-card">
+                <form id="searchForm" class="search-form">
+                    <div class="search-row">
+                        <div class="form-group">
+                            <label for="flight_number">
+                                <span class="label-icon">✈️</span>
+                                Flight Number
+                            </label>
+                            <input 
+                                type="text" 
+                                id="flight_number" 
+                                name="flight_number" 
+                                placeholder="e.g., AA101, UA205"
+                                class="form-input"
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="airline">
+                                <span class="label-icon">🏢</span>
+                                Airline
+                            </label>
+                            <input 
+                                type="text" 
+                                id="airline" 
+                                name="airline" 
+                                placeholder="e.g., American, United"
+                                class="form-input"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="search-row">
+                        <div class="form-group">
+                            <label for="origin">
+                                <span class="label-icon">🛫</span>
+                                Origin Airport
+                            </label>
+                            <input 
+                                type="text" 
+                                id="origin" 
+                                name="origin" 
+                                placeholder="e.g., JFK, LAX, ORD"
+                                class="form-input"
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="destination">
+                                <span class="label-icon">🛬</span>
+                                Destination Airport
+                            </label>
+                            <input 
+                                type="text" 
+                                id="destination" 
+                                name="destination" 
+                                placeholder="e.g., SFO, MIA, ATL"
+                                class="form-input"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="search-row">
+                        <div class="form-group full-width">
+                            <label>
+                                <span class="label-icon">📊</span>
+                                Flight Status
+                            </label>
+                            <div class="status-filters">
+                                <button type="button" class="status-btn" data-status="">All Flights</button>
+                                <button type="button" class="status-btn" data-status="airborne">Currently Airborne</button>
+                                <button type="button" class="status-btn" data-status="delayed">Delayed</button>
+                                <button type="button" class="status-btn" data-status="on-time">On Time</button>
+                                <button type="button" class="status-btn" data-status="boarding">Boarding</button>
+                            </div>
+                            <input type="hidden" id="status" name="status" value="">
+                        </div>
+                    </div>
+
+                    <div class="search-actions">
+                        <button type="submit" class="btn btn-primary btn-search">
+                            🔍 Search Flights
+                        </button>
+                        <button type="button" id="clearBtn" class="btn btn-secondary">
+                            Clear Filters
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Results Section -->
+            <div id="resultsSection" class="results-section" style="display: none;">
+                <div class="results-header">
+                    <h2>Search Results</h2>
+                    <span id="resultCount" class="result-count">0 flights found</span>
+                </div>
+                <div id="resultsContainer" class="results-container">
+                    <!-- Results will be populated here -->
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loadingState" class="loading-state" style="display: none;">
+                <div class="spinner"></div>
+                <p>Searching flights...</p>
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="empty-state">
+                <div class="empty-icon">🔍</div>
+                <h3>Start Your Search</h3>
+                <p>Enter a flight number, airline, or airport to find flights</p>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Status filter functionality
+        const statusBtns = document.querySelectorAll('.status-btn');
+        const statusInput = document.getElementById('status');
+        
+        statusBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                statusBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                statusInput.value = btn.dataset.status;
+            });
+        });
+
+        // Set default active status (All Flights)
+        statusBtns[0].classList.add('active');
+
+        // Form submission
+        const searchForm = document.getElementById('searchForm');
+        const resultsSection = document.getElementById('resultsSection');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const resultCount = document.getElementById('resultCount');
+        const loadingState = document.getElementById('loadingState');
+        const emptyState = document.getElementById('emptyState');
+
+        searchForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Show loading state
+            emptyState.style.display = 'none';
+            resultsSection.style.display = 'none';
+            loadingState.style.display = 'flex';
+
+            // Get form data
+            const formData = new FormData(searchForm);
+            const params = new URLSearchParams(formData);
+
+            try {
+                const response = await fetch(`/search/api/flights/?${params}`);
+                const data = await response.json();
+
+                // Hide loading state
+                loadingState.style.display = 'none';
+
+                if (data.success && data.flights.length > 0) {
+                    displayResults(data.flights);
+                    resultCount.textContent = `${data.count} flight${data.count !== 1 ? 's' : ''} found`;
+                    resultsSection.style.display = 'block';
+                } else {
+                    displayNoResults();
+                }
+            } catch (error) {
+                console.error('Search error:', error);
+                loadingState.style.display = 'none';
+                displayError();
+            }
+        });
+
+        function displayResults(flights) {
+            resultsContainer.innerHTML = flights.map(flight => `
+                <div class="flight-card">
+                    <div class="flight-header">
+                        <div class="flight-number">
+                            <span class="flight-icon">✈️</span>
+                            <h3>${flight.flight_number}</h3>
+                            <span class="status-badge status-${flight.status}">${formatStatus(flight.status)}</span>
+                        </div>
+                        <div class="airline-name">${flight.airline}</div>
+                    </div>
+                    
+                    <div class="flight-route">
+                        <div class="airport-info">
+                            <div class="airport-code">${flight.origin}</div>
+                            <div class="airport-city">${flight.origin_city}</div>
+                            <div class="flight-time">${flight.departure_time}</div>
+                        </div>
+                        
+                        <div class="route-line">
+                            <div class="plane-icon">✈</div>
+                        </div>
+                        
+                        <div class="airport-info">
+                            <div class="airport-code">${flight.destination}</div>
+                            <div class="airport-city">${flight.destination_city}</div>
+                            <div class="flight-time">${flight.arrival_time}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="flight-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Aircraft:</span>
+                            <span class="detail-value">${flight.aircraft}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Gate:</span>
+                            <span class="detail-value">${flight.gate}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flight-actions">
+                        <button class="btn btn-small btn-primary">Track Flight</button>
+                        <button class="btn btn-small btn-outline">View Details</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function displayNoResults() {
+            resultsContainer.innerHTML = `
+                <div class="no-results">
+                    <div class="no-results-icon">❌</div>
+                    <h3>No Flights Found</h3>
+                    <p>Try adjusting your search criteria or filters</p>
+                </div>
+            `;
+            resultsSection.style.display = 'block';
+            resultCount.textContent = '0 flights found';
+        }
+
+        function displayError() {
+            resultsContainer.innerHTML = `
+                <div class="no-results">
+                    <div class="no-results-icon">⚠️</div>
+                    <h3>Search Error</h3>
+                    <p>Unable to search flights. Please try again.</p>
+                </div>
+            `;
+            resultsSection.style.display = 'block';
+        }
+
+        function formatStatus(status) {
+            const statusMap = {
+                'airborne': 'In Flight',
+                'delayed': 'Delayed',
+                'on-time': 'On Time',
+                'boarding': 'Boarding',
+                'cancelled': 'Cancelled'
+            };
+            return statusMap[status] || status;
+        }
+
+        // Clear button
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            searchForm.reset();
+            statusBtns.forEach(b => b.classList.remove('active'));
+            statusBtns[0].classList.add('active');
+            statusInput.value = '';
+            resultsSection.style.display = 'none';
+            emptyState.style.display = 'flex';
+        });
+    </script>
+</body>
+</html>
