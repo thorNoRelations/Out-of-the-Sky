@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight {{ flight.flight_number }} Details</title>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .flight-card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .flight-header {
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .flight-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        .route {
+            font-size: 18px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .time-section {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        
+        .time-label {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .time-value {
+            font-size: 18px;
+            color: #007bff;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .on-time {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .delayed {
+            background-color: #ffc107;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="flight-card">
+        
+        <div class="flight-header">
+            <div class="flight-number">Flight {{ flight.flight_number }}</div>
+            <div class="route">{{ flight.departing_city }} → {{ flight.arriving_city }}</div>
+        </div>
+
+        <div class="time-section">
+            <div class="time-label">Departure</div>
+            
+            <div>
+                <strong>Scheduled:</strong> 
+                <span class="time-value">{{ flight.scheduled_departure|date:"F d, Y - g:i A" }}</span>
+            </div>
+            
+            {% if flight.estimated_departure %}
+                <div style="margin-top: 10px;">
+                    <strong>Estimated:</strong> 
+                    <span class="time-value">{{ flight.estimated_departure|date:"F d, Y - g:i A" }}</span>
+                    
+                    {% if flight.estimated_departure != flight.scheduled_departure %}
+                        <span class="status-badge delayed">Delayed</span>
+                    {% endif %}
+                </div>
+            {% else %}
+                <div style="margin-top: 10px;">
+                    <span class="status-badge on-time">On Time</span>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="time-section">
+            <div class="time-label">Arrival</div>
+            
+            <div>
+                <strong>Scheduled:</strong> 
+                <span class="time-value">{{ flight.scheduled_arrival|date:"F d, Y - g:i A" }}</span>
+            </div>
+            
+            {% if flight.estimated_arrival %}
+                <div style="margin-top: 10px;">
+                    <strong>Estimated:</strong> 
+                    <span class="time-value">{{ flight.estimated_arrival|date:"F d, Y - g:i A" }}</span>
+                    
+                    {% if flight.estimated_arrival != flight.scheduled_arrival %}
+                        <span class="status-badge delayed">Delayed</span>
+                    {% endif %}
+                </div>
+            {% else %}
+                <div style="margin-top: 10px;">
+                    <span class="status-badge on-time">On Time</span>
+                </div>
+            {% endif %}
+        </div>
+
+        <div style="margin-top: 20px; color: #999; font-size: 14px;">
+            Last updated: {{ flight.last_updated|date:"F d, Y - g:i A" }}
+        </div>
+        
+    </div>
+</body>
+</html>
