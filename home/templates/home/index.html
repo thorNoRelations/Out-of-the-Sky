@@ -58,11 +58,13 @@
                     <h3>Live Flight Map</h3>
                     <p>Watch aircraft in real-time on an interactive world map. Zoom, pan, and click any flight for instant details.</p>
                 </div>
-                <div class="feature-card">
-                    <div class="feature-icon">📊</div>
-                    <h3>Personal Dashboard</h3>
-                    <p>Manage multiple flights in one place. Add, remove, and monitor all your tracked flights with live status updates.</p>
-                </div>
+                <a href="{% url 'home:dashboard' %}" style="text-decoration: none; color: inherit;">
+                    <div class="feature-card">
+                        <div class="feature-icon">📊</div>
+                        <h3>Personal Dashboard</h3>
+                        <p>Manage multiple flights in one place. Add, remove, and monitor all your tracked flights with live status updates.</p>
+                    </div>
+                </a>
                 <div class="feature-card">
                     <div class="feature-icon">🔍</div>
                     <h3>Smart Search</h3>
