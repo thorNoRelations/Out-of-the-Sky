@@ -16,11 +16,13 @@
     <nav class="navbar">
         <div class="container">
             <div class="nav-brand">
-                <h2>✈️ Out of the Sky</h2>
+                <a href="{% url 'home:index' %}">
+                    <h2>✈️ Out of the Sky</h2>
+                </a>
             </div>
             <ul class="nav-menu">
-                <li><a href="/">Home</a></li>
-                <li><a href="/search">Search</a></li>
+                <li><a href="{% url 'home:index' %}">Home</a></li>
+                <li><a href="{% url 'search:search' %}">Search</a></li>
                 <li><a href="#" class="btn-primary">Dashboard</a></li>
             </ul>
         </div>
@@ -188,7 +190,7 @@
             const params = new URLSearchParams(formData);
 
             try {
-                const response = await fetch(`/search/api/flights/?${params}`);
+                const response = await fetch(`{% url 'search:search_flights' %}?${params}`);
                 const data = await response.json();
 
                 // Hide loading state

@@ -15,14 +15,16 @@
     <nav class="navbar">
         <div class="container">
             <div class="nav-brand">
-                <h2>✈️ Out of the Sky</h2>
+                <a href="{% url 'home:index' %}">
+                    <h2>✈️ Out of the Sky</h2>
+                </a>
             </div>
             <ul class="nav-menu">
                 <li><a href="#features">Features</a></li>
                 <li><a href="#tracking">Tracking</a></li>
                 <li><a href="#insights">Insights</a></li>
                 <li><a href="#team">Team</a></li>
-                <li><a href="#" class="btn-primary">Launch App</a></li>
+                <li><a href="{% url 'search:search' %}" class="btn-primary">Search Flights</a></li>
             </ul>
         </div>
     </nav>
@@ -39,7 +41,7 @@
                     Whether you're a frequent traveler or aviation enthusiast, stay connected to the skies like never before.
                 </p>
                 <div class="hero-buttons">
-                    <a href="#" class="btn btn-primary-large">Start Tracking Flights</a>
+                    <a href="{% url 'search:search' %}" class="btn btn-primary-large">Start Tracking Flights</a>
                     <a href="#features" class="btn btn-secondary-large">Explore Features</a>
                 </div>
             </div>
@@ -228,7 +230,7 @@
         <div class="container">
             <h2>Ready for Takeoff?</h2>
             <p>Start tracking flights worldwide with real-time data, AI insights, and personalized alerts.</p>
-            <a href="#" class="btn btn-light-large">Launch Application</a>
+            <a href="{% url 'search:search' %}" class="btn btn-light-large">Launch Application</a>
         </div>
     </section>
 
@@ -243,10 +245,10 @@
                 <div class="footer-section">
                     <h4>Features</h4>
                     <ul>
-                        <li><a href="#">Live Flight Map</a></li>
-                        <li><a href="#">Personal Dashboard</a></li>
-                        <li><a href="#">Weather Insights</a></li>
-                        <li><a href="#">AI Analytics</a></li>
+                        <li><a href="{% url 'search:search' %}">Search Flights</a></li>
+                        <li><a href="#features">Live Flight Map</a></li>
+                        <li><a href="#tracking">Personal Dashboard</a></li>
+                        <li><a href="#insights">AI Analytics</a></li>
                     </ul>
                 </div>
                 <div class="footer-section">
