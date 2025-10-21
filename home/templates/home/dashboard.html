@@ -1,0 +1,379 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight Dashboard</title>
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        .dashboard-header {
+            background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #2563eb;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+        
+        .flights-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+        
+        .flight-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .flight-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+        
+        .flight-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+        
+        .flight-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1f2937;
+        }
+        
+        .airline {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+        
+        .status-badge {
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .status-scheduled { background: #dbeafe; color: #1e40af; }
+        .status-active { background: #d1fae5; color: #065f46; }
+        .status-delayed { background: #fef3c7; color: #92400e; }
+        .status-landed { background: #e5e7eb; color: #374151; }
+        .status-cancelled { background: #fee2e2; color: #991b1b; }
+        
+        .flight-route {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background: #f9fafb;
+            border-radius: 8px;
+        }
+        
+        .airport {
+            flex: 1;
+        }
+        
+        .airport-code {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #1f2937;
+        }
+        
+        .airport-name {
+            font-size: 0.85rem;
+            color: #6b7280;
+        }
+        
+        .route-arrow {
+            font-size: 1.5rem;
+            color: #2563eb;
+        }
+        
+        .flight-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .detail-item {
+            font-size: 0.9rem;
+        }
+        
+        .detail-label {
+            color: #6b7280;
+            font-weight: 500;
+        }
+        
+        .detail-value {
+            color: #1f2937;
+            font-weight: 600;
+        }
+        
+        .flight-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #1e40af;
+        }
+        
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #374151;
+        }
+        
+        .btn-secondary:hover {
+            background: #d1d5db;
+        }
+        
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: white;
+            border-radius: 12px;
+        }
+        
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+        
+        .navbar {
+            background: #000;
+            padding: 1rem 0;
+            margin-bottom: 0;
+        }
+        
+        .nav-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-brand {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-decoration: none;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+        
+        .nav-link {
+            color: #e5e7eb;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        
+        .nav-link:hover {
+            color: #2563eb;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-content">
+            <a href="{% url 'home:index' %}" class="nav-brand">Out of the Sky</a>
+            <div class="nav-links">
+                <a href="{% url 'home:dashboard' %}" class="nav-link">Dashboard</a>
+                <a>Add Flight</a>
+                <a href="/admin/" class="nav-link">Admin</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="container">
+            <h1 style="color: white; margin-bottom: 0.5rem;">Flight Dashboard</h1>
+            <p style="color: rgba(255,255,255,0.9);">Track your flights in real time</p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">{{ total_tracked }}</div>
+                <div class="stat-label">Tracked Flights</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ active_flights }}</div>
+                <div class="stat-label">Active Now</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ delayed_flights }}</div>
+                <div class="stat-label">Delayed</div>
+            </div>
+        </div>
+
+        <!-- Messages -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}" style="padding: 1rem; background: #dbeafe; border-radius: 8px; margin-bottom: 1rem;">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Add Flight Button -->
+        <div style="margin-bottom: 2rem;">
+            <a>+ Add New Flight</a>
+        </div>
+
+        <!-- Tracked Flights -->
+        {% if tracked_flights %}
+            <div class="flights-grid">
+                {% for tracked in tracked_flights %}
+                <div class="flight-card">
+                    <div class="flight-header">
+                        <div>
+                            <div class="flight-number">{{ tracked.flight.flight_number }}</div>
+                            <div class="airline">{{ tracked.flight.airline }}</div>
+                        </div>
+                        <span class="status-badge status-{{ tracked.flight.status }}">
+                            {{ tracked.flight.current_status_display }}
+                        </span>
+                    </div>
+
+                    <div class="flight-route">
+                        <div class="airport">
+                            <div class="airport-code">{{ tracked.flight.departure_airport_code }}</div>
+                            <div class="airport-name">{{ tracked.flight.departure_airport }}</div>
+                        </div>
+                        <div class="route-arrow">✈️</div>
+                        <div class="airport">
+                            <div class="airport-code">{{ tracked.flight.arrival_airport_code }}</div>
+                            <div class="airport-name">{{ tracked.flight.arrival_airport }}</div>
+                        </div>
+                    </div>
+
+                    <div class="flight-details">
+                        <div class="detail-item">
+                            <div class="detail-label">Departure</div>
+                            <div class="detail-value">
+                                {{ tracked.flight.scheduled_departure|date:"M d, H:i" }}
+                                {% if tracked.flight.departure_gate %}
+                                    • Gate {{ tracked.flight.departure_gate }}
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Arrival</div>
+                            <div class="detail-value">
+                                {{ tracked.flight.scheduled_arrival|date:"M d, H:i" }}
+                                {% if tracked.flight.arrival_gate %}
+                                    • Gate {{ tracked.flight.arrival_gate }}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if tracked.notes %}
+                    <div style="padding: 0.75rem; background: #fef3c7; border-radius: 6px; margin-bottom: 1rem; font-size: 0.9rem;">
+                        📝 {{ tracked.notes }}
+                    </div>
+                    {% endif %}
+
+                    <div class="flight-actions">
+                        <a href="{% url 'home:flight_detail' tracked.id %}" class="btn btn-secondary">View Details</a>
+                        <form method="POST" action="{% url 'home:remove_flight' tracked.id %}" style="margin: 0;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger" onclick="return confirm('Remove this flight from your dashboard?')">
+                                Remove
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">✈️</div>
+                <h2>No Flights Tracked Yet</h2>
+                <p style="color: #6b7280; margin: 1rem 0 2rem;">Start tracking flights to see them here</p>
+                <a href="{% url 'home:add_flight' %}" class="btn btn-primary">Add Your First Flight</a>
+            </div>
+        {% endif %}
+    </div>
+
+    <script>
+        // Auto-refresh every 60 seconds for real-time updates
+        setTimeout(function() {
+            location.reload();
+        }, 60000);
+    </script>
+</body>
+</html>
