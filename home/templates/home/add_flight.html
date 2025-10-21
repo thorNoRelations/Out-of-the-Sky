@@ -1,0 +1,296 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add a Flight</title>
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        .search-header {
+            background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+        }
+        
+        .search-box {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+        
+        .results-grid {
+            display: grid;
+            gap: 1rem;
+        }
+        
+        .result-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 2px solid #e5e7eb;
+            transition: all 0.2s;
+        }
+        
+        .result-card:hover {
+            border-color: #2563eb;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
+        }
+        
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+        
+        .flight-info {
+            flex: 1;
+        }
+        
+        .flight-number-large {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 0.25rem;
+        }
+        
+        .route-display {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: #f9fafb;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+        
+        .airport-info {
+            flex: 1;
+            text-align: center;
+        }
+        
+        .airport-code-large {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2563eb;
+        }
+        
+        .airport-name-small {
+            font-size: 0.85rem;
+            color: #6b7280;
+        }
+        
+        .time-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .time-item {
+            font-size: 0.9rem;
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+            width: 100%;
+        }
+        
+        .btn-primary:hover {
+            background: #1e40af;
+        }
+        
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #374151;
+        }
+        
+        .btn-secondary:hover {
+            background: #d1d5db;
+        }
+        
+        .navbar {
+            background: #000;
+            padding: 1rem 0;
+        }
+        
+        .nav-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-brand {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-decoration: none;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+        
+        .nav-link {
+            color: #e5e7eb;
+            text-decoration: none;
+        }
+        
+        .notes-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            font-family: inherit;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-content">
+            <a href="{% url 'home:index' %}" class="nav-brand">Out of the Sky</a>
+            <div class="nav-links">
+                <a href="{% url 'home:dashboard' %}" class="nav-link">Dashboard</a>
+                <a href="{% url 'home:add_flight' %}" class="nav-link">Add Flight</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="search-header">
+        <div class="container">
+            <h1 style="color: white; margin-bottom: 0.5rem;">Add Flight to Dashboard</h1>
+            <p style="color: rgba(255,255,255,0.9);">Search by flight number, airline, or airport code</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Search Box -->
+        <div class="search-box">
+            <form method="GET" action="{% url 'home:add_flight' %}">
+                <input 
+                    type="text" 
+                    name="search" 
+                    class="search-input" 
+                    placeholder="Search flights (e.g., AA123, JFK, United)" 
+                    value="{{ search_query }}"
+                    autofocus
+                >
+                <button type="submit" class="btn btn-primary">🔍 Search Flights</button>
+            </form>
+        </div>
+
+        <!-- Messages -->
+        {% if messages %}
+            {% for message in messages %}
+                <div style="padding: 1rem; background: #dbeafe; border-radius: 8px; margin-bottom: 1rem;">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Search Results -->
+        {% if search_query %}
+            {% if flights %}
+                <h2 style="margin-bottom: 1.5rem;">Found {{ flights|length }} flight{{ flights|length|pluralize }}</h2>
+                <div class="results-grid">
+                    {% for flight in flights %}
+                    <div class="result-card">
+                        <div class="result-header">
+                            <div class="flight-info">
+                                <div class="flight-number-large">{{ flight.flight_number }}</div>
+                                <div style="color: #6b7280;">{{ flight.airline }}</div>
+                            </div>
+                            <span class="status-badge status-{{ flight.status }}" style="padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">
+                                {{ flight.get_status_display }}
+                            </span>
+                        </div>
+
+                        <div class="route-display">
+                            <div class="airport-info">
+                                <div class="airport-code-large">{{ flight.departure_airport_code }}</div>
+                                <div class="airport-name-small">{{ flight.departure_airport }}</div>
+                            </div>
+                            <div style="font-size: 2rem;">✈️</div>
+                            <div class="airport-info">
+                                <div class="airport-code-large">{{ flight.arrival_airport_code }}</div>
+                                <div class="airport-name-small">{{ flight.arrival_airport }}</div>
+                            </div>
+                        </div>
+
+                        <div class="time-info">
+                            <div class="time-item">
+                                <div style="color: #6b7280; font-size: 0.85rem;">Departure</div>
+                                <div style="font-weight: 600;">{{ flight.scheduled_departure|date:"M d, H:i" }}</div>
+                            </div>
+                            <div class="time-item">
+                                <div style="color: #6b7280; font-size: 0.85rem;">Arrival</div>
+                                <div style="font-weight: 600;">{{ flight.scheduled_arrival|date:"M d, H:i" }}</div>
+                            </div>
+                        </div>
+
+                        <form method="POST" action="{% url 'home:add_flight' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="flight_id" value="{{ flight.id }}">
+                            <textarea 
+                                name="notes" 
+                                class="notes-input" 
+                                placeholder="Add notes (optional)"
+                                rows="2"
+                            ></textarea>
+                            <button type="submit" class="btn btn-primary">+ Add to Dashboard</button>
+                        </form>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div style="text-align: center; padding: 3rem; background: white; border-radius: 12px;">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
+                    <h3>No flights found</h3>
+                    <p style="color: #6b7280;">Try searching with a different flight number or airport code</p>
+                </div>
+            {% endif %}
+        {% else %}
+            <div style="text-align: center; padding: 3rem; background: white; border-radius: 12px;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">✈️</div>
+                <h3>Start Your Search</h3>
+                <p style="color: #6b7280;">Enter a flight number, airline, or airport code above</p>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>
