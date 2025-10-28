@@ -1,4 +1,5 @@
 from django.shortcuts import render, get_object_or_404
+from django.utils import timezone
 from .models import Flight
 
 def index(request):
@@ -12,16 +13,21 @@ def index(request):
     }
     return render(request, 'home/index.html', context)
 
-#View display for flight display feature
 def flight_detail(request, flight_id):
-
-    #Grabs flight from database, returns error if entered flight does not exist
     flight = get_object_or_404(Flight, id=flight_id)
-
-    #Passes flight to the template
+    all_flights = Flight.objects.all()
+    other_flights = all_flights.exclude(id=flight_id)[:5]
+    
+    on_time_count = all_flights.filter(estimated_departure__isnull=True).count()
+    delayed_count = all_flights.exclude(estimated_departure__isnull=True).count()
+    upcoming_count = all_flights.filter(scheduled_departure__gte=timezone.now()).count()
+    
     context = {
-            'flight': flight,
-        }
-
-    #Runs the template with the flight data 
+        'flight': flight,
+        'all_flights': all_flights,
+        'other_flights': other_flights,
+        'on_time_count': on_time_count,
+        'delayed_count': delayed_count,
+        'upcoming_count': upcoming_count,
+    }
     return render(request, 'home/flight_detail.html', context)
