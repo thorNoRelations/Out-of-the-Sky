@@ -30,4 +30,34 @@ def flight_detail(request, flight_id):
         'delayed_count': delayed_count,
         'upcoming_count': upcoming_count,
     }
+    def weather_insights(request):
+    """Weather insights page showing forecasts for all airports"""
+    from .models import AirportWeather
+    from django.db.models import Q
+    
+    # Get search query if any
+    search_query = request.GET.get('search', '')
+    
+    # Get all unique airports with weather data
+    if search_query:
+        weather_data = AirportWeather.objects.filter(
+            Q(airport_code__icontains=search_query) |
+            Q(airport_name__icontains=search_query)
+        ).order_by('airport_code', '-forecast_time').distinct('airport_code')
+    else:
+        weather_data = AirportWeather.objects.order_by('airport_code', '-forecast_time').distinct('airport_code')
+    
+    # Group by airport and get latest forecast for each
+    airports_weather = {}
+    for weather in weather_data:
+        if weather.airport_code not in airports_weather:
+            airports_weather[weather.airport_code] = weather
+    
+    context = {
+        'airports_weather': airports_weather.values(),
+        'search_query': search_query,
+        'total_airports': len(airports_weather),
+    }
+    
+    return render(request, 'home/weather_insights.html', context)
     return render(request, 'home/flight_detail.html', context)
