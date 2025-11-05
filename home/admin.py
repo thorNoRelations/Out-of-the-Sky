@@ -7,3 +7,28 @@ class ApiUsageAdmin(admin.ModelAdmin):
     list_filter = ("provider", "yyyymmdd")
     search_fields = ("provider",)
     ordering = ("-yyyymmdd", "provider")
+
+
+@admin.register(Flight)
+class FlightAdmin(admin.ModelAdmin):
+    list_display = [
+        'flight_number',
+        'departing_city',
+        'arriving_city',
+        'scheduled_departure',
+        'scheduled_arrival',
+    ]
+
+    list_filter = [
+        'departing_city',
+        'arriving_city',
+        'scheduled_departure',
+    ]
+
+    search_fields = [
+        'flight_number',
+        'departing_city',
+        'arriving_city',
+    ]
+
+    ordering = ['-scheduled_departure']

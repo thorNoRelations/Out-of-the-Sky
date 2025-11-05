@@ -25,3 +25,23 @@ class Migration(migrations.Migration):
             },
         ),
     ]
+    operations = [
+        migrations.CreateModel(
+            name='Flight',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('flight_number', models.CharField(help_text='Flight Number: (AB1234)', max_length=25)),
+                ('departing_city', models.CharField(help_text='City of Departure', max_length=50)),
+                ('arriving_city', models.CharField(help_text='City of Arrival', max_length=50)),
+                ('scheduled_departure', models.DateTimeField(help_text='Originally scheduled departure time')),
+                ('scheduled_arrival', models.DateTimeField(help_text='Originally scheduled arrival time')),
+                ('estimated_departure', models.DateTimeField(blank=True, help_text='Current estimated departure time (based on weather/delays) ', null=True)),
+                ('estimated_arrival', models.DateTimeField(blank=True, help_text='Current estimated arrival time (based on weather/delays) ', null=True)),
+                ('time_created', models.DateTimeField(auto_now_add=True, help_text='When flight record was created')),
+                ('last_updated', models.DateTimeField(auto_now=True, help_text='Last updated')),
+            ],
+            options={
+                'ordering': ['scheduled_departure'],
+            },
+        ),
+    ]
