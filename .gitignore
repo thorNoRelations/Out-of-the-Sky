@@ -68,7 +68,6 @@ cover/
 # Django stuff:
 *.log
 local_settings.py
-db.sqlite3
 db.sqlite3-journal
 
 # Flask stuff:
@@ -93,9 +92,8 @@ profile_default/
 ipython_config.py
 
 # Python build/cache
-__pycache__/
 *.py[cod]
-*$py.class
+
 
 # pyenv
 #   For a library or package, you might want to ignore these files since the code is
@@ -231,4 +229,4 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
-*.sqlite3
+
