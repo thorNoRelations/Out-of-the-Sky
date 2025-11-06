@@ -7,7 +7,9 @@ from django.utils import timezone
 from django.shortcuts import render, get_object_or_404
 from datetime import timezone as _tz
 from .models import ApiUsage
-from .models import Flight
+from .models import Flight, AirportWeather
+from django.db.models import Q
+
 def index(request):
     """
     View function for the landing page.
