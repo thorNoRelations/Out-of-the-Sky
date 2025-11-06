@@ -49,15 +49,16 @@ def weather_insights(request):
     search_query = request.GET.get('search', '')
     
     # Get latest weather for each airport (works with SQLite)
-    airports_weather = {}
     
-    if search_query:
-        weather_data = AirportWeather.objects.filter(
-            Q(airport_code__icontains=search_query) |
-            Q(airport_name__icontains=search_query)
-        ).order_by('airport_code', '-forecast_time')
-    else:
-        weather_data = AirportWeather.objects.all().order_by('airport_code', '-forecast_time')
+   # airports_weather = {}
+    
+  #  if search_query:
+      #  weather_data = AirportWeather.objects.filter(
+      #      Q(airport_code__icontains=search_query) |
+        #    Q(airport_name__icontains=search_query)
+       # ).order_by('airport_code', '-forecast_time')
+    #else:
+     #   weather_data = AirportWeather.objects.all().order_by('airport_code', '-forecast_time')
     
     # Manually get the latest forecast for each airport (SQLite compatible)
     for weather in weather_data:
