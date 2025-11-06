@@ -148,6 +148,12 @@ jobs:
         run: |
           python manage.py migrate --noinput
 
+      - name: Set STATIC_ROOT
+        run: echo "STATIC_ROOT=$GITHUB_WORKSPACE/staticfiles" >> $GITHUB_ENV
+
+      - name: Collect static files
+        run: python manage.py collectstatic --noinput
+
       - name: Run tests with coverage
         run: |
           coverage run --source='.' manage.py test
