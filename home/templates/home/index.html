@@ -23,6 +23,7 @@
                 <li><a href="#features">Features</a></li>
                 <li><a href="#tracking">Tracking</a></li>
                 <li><a href="#insights">Insights</a></li>
+                <li><a href="{% url 'home:weather_insights' %}">Weather</a></li>
                 <li><a href="#team">Team</a></li>
                 <li><a href="{% url 'home:flight_detail' 1 %}">Dashboard</a></li>
                 <li><a href="{% url 'search:search' %}" class="btn-primary">Search Flights</a></li>
@@ -73,6 +74,7 @@
                     <div class="feature-icon">🌤️</div>
                     <h3>Weather Insights</h3>
                     <p>Get airport weather forecasts and delay predictions to plan around disruptions before they happen.</p>
+                    <a href="{% url 'home:weather_insights' %}" class="btn btn-primary" style="margin-top: 1rem; display: inline-block;">View Weather →</a>
                 </div>
             </div>
         </div>

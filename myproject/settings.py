@@ -130,7 +130,12 @@ STATICFILES_DIRS = [
 
 # Use different storage backends for testing vs production
 import sys
-if 'test' in sys.argv:
+import os
+
+# Check if we're running tests (works for both pytest and Django's test runner)
+TESTING = 'test' in sys.argv or 'pytest' in sys.modules or os.environ.get('PYTEST_CURRENT_TEST')
+
+if TESTING:
     # Use simple static storage for tests (no manifest required)
     STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 else:
