@@ -38,7 +38,27 @@ def flight_detail(request, flight_id):
         'upcoming_count': upcoming_count,
     }
     return render(request, 'home/flight_detail.html', context)
+def weather_insights(request):
+    search_query = request.GET.get('search', '')
 
+    if search_query:
+        weather_data = AirportWeather.objects.filter(
+            Q(airport_code__icontains=search_query) |
+            Q(airport_name__icontains=search_query)
+        ).order_by('airport_code', '-forecast_time').distinct('airport_code')
+    else:
+        weather_data = AirportWeather.objects.order_by('airport_code', '-forecast_time').distinct('airport_code')
+
+    airports_weather = {}
+    for weather in weather_data:
+        if weather.airport_code not in airports_weather:
+            airports_weather[weather.airport_code] = weather
+
+    context = {
+        'airports_weather': airports_weather.values(),
+        'search_query': search_query,
+        'total_airports': len(airports_weather),
+    }
 def _budgets_from_env():
     return {
         "openweathermap": int(os.getenv("BUDGET_OPENWEATHERMAP_PER_DAY", 900)),
