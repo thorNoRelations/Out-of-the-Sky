@@ -91,3 +91,138 @@ class Flight(models.Model):
 
     def get_arrival_time(self):
         return self.estimated_arrival or self.scheduled_arrival
+
+class AirportWeather(models.Model):
+    """
+    Model to store weather information for airports
+    """
+    WEATHER_CONDITION_CHOICES = [
+        ('clear', 'Clear'),
+        ('partly_cloudy', 'Partly Cloudy'),
+        ('cloudy', 'Cloudy'),
+        ('rain', 'Rain'),
+        ('heavy_rain', 'Heavy Rain'),
+        ('snow', 'Snow'),
+        ('thunderstorm', 'Thunderstorm'),
+        ('fog', 'Fog'),
+        ('wind', 'Windy'),
+    ]
+    
+    DELAY_RISK_CHOICES = [
+        ('low', 'Low Risk'),
+        ('moderate', 'Moderate Risk'),
+        ('high', 'High Risk'),
+        ('severe', 'Severe Risk'),
+    ]
+    
+    # Airport information
+    airport_code = models.CharField(
+        max_length=10,
+        help_text="Airport code (e.g., DEN, LAX)"
+    )
+    airport_name = models.CharField(
+        max_length=100,
+        help_text="Full airport name"
+    )
+    
+    # Weather data
+    condition = models.CharField(
+        max_length=20,
+        choices=WEATHER_CONDITION_CHOICES,
+        default='clear',
+        help_text="Current weather condition"
+    )
+    temperature = models.IntegerField(
+        help_text="Temperature in Fahrenheit"
+    )
+    wind_speed = models.IntegerField(
+        default=0,
+        help_text="Wind speed in mph"
+    )
+    visibility = models.FloatField(
+        default=10.0,
+        help_text="Visibility in miles"
+    )
+    precipitation_chance = models.IntegerField(
+        default=0,
+        help_text="Chance of precipitation (0-100%)"
+    )
+    
+    # Delay prediction
+    delay_risk = models.CharField(
+        max_length=20,
+        choices=DELAY_RISK_CHOICES,
+        default='low',
+        help_text="Predicted delay risk level"
+    )
+    delay_probability = models.IntegerField(
+        default=0,
+        help_text="Probability of delays (0-100%)"
+    )
+    estimated_delay_minutes = models.IntegerField(
+        default=0,
+        help_text="Estimated delay in minutes"
+    )
+    
+    # Forecast information
+    forecast_time = models.DateTimeField(
+        help_text="Time this forecast is for"
+    )
+    forecast_description = models.TextField(
+        blank=True,
+        help_text="Detailed forecast description"
+    )
+    
+    # Metadata
+    last_updated = models.DateTimeField(
+        auto_now=True,
+        help_text="Last time weather data was updated"
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text="When this weather record was created"
+    )
+    
+    class Meta:
+        ordering = ['forecast_time']
+        # Prevent duplicate forecasts for same airport/time
+        unique_together = ['airport_code', 'forecast_time']
+    
+    def __str__(self):
+        return f"{self.airport_code} - {self.condition} at {self.forecast_time}"
+    
+    # Helper method to get weather icon emoji
+    def get_weather_icon(self):
+        """Return emoji icon for weather condition"""
+        icons = {
+            'clear': '☀️',
+            'partly_cloudy': '⛅',
+            'cloudy': '☁️',
+            'rain': '🌧️',
+            'heavy_rain': '⛈️',
+            'snow': '❄️',
+            'thunderstorm': '⚡',
+            'fog': '🌫️',
+            'wind': '💨',
+        }
+        return icons.get(self.condition, '🌤️')
+    
+    # Helper method to get delay risk color
+    def get_risk_color(self):
+        """Return CSS color class for delay risk"""
+        colors = {
+            'low': 'success',      # Green
+            'moderate': 'warning', # Yellow
+            'high': 'danger',      # Orange
+            'severe': 'critical',  # Red
+        }
+        return colors.get(self.delay_risk, 'info')
+    
+    # Check if weather is suitable for flying
+    def is_flight_friendly(self):
+        """Determine if weather conditions are good for flying"""
+        return (
+            self.delay_risk in ['low', 'moderate'] and
+            self.visibility >= 3.0 and
+            self.condition not in ['thunderstorm', 'heavy_rain', 'snow']
+        )
