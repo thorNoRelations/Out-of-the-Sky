@@ -41,26 +41,36 @@ def flight_detail(request, flight_id):
     }
     return render(request, 'home/flight_detail.html', context)
 def weather_insights(request):
+    """Weather insights page showing forecasts for all airports"""
+    from .models import AirportWeather
+    from django.db.models import Q
+    
+    # Get search query if any
     search_query = request.GET.get('search', '')
-
+    
+    # Get latest weather for each airport (works with SQLite)
+    airports_weather = {}
+    
     if search_query:
         weather_data = AirportWeather.objects.filter(
             Q(airport_code__icontains=search_query) |
             Q(airport_name__icontains=search_query)
-        ).order_by('airport_code', '-forecast_time').distinct('airport_code')
+        ).order_by('airport_code', '-forecast_time')
     else:
-        weather_data = AirportWeather.objects.order_by('airport_code', '-forecast_time').distinct('airport_code')
-
-    airports_weather = {}
+        weather_data = AirportWeather.objects.all().order_by('airport_code', '-forecast_time')
+    
+    # Manually get the latest forecast for each airport (SQLite compatible)
     for weather in weather_data:
         if weather.airport_code not in airports_weather:
             airports_weather[weather.airport_code] = weather
-
+    
     context = {
         'airports_weather': airports_weather.values(),
         'search_query': search_query,
         'total_airports': len(airports_weather),
     }
+    
+    return render(request, 'home/weather_insights.html', context)
 def _budgets_from_env():
     return {
         "openweathermap": int(os.getenv("BUDGET_OPENWEATHERMAP_PER_DAY", 900)),
