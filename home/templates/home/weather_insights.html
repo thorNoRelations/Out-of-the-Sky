@@ -8,378 +8,507 @@
     <link rel="stylesheet" href="{% static 'styles.css' %}">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-        .weather-header {
-            background: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
+        body {
+            background: var(--bg-light);
+        }
+
+        .weather-hero {
+            background: var(--gradient-primary);
+            padding: 8rem 0 4rem;
+            margin-top: 60px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .weather-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(6, 182, 212, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(59, 130, 246, 0.3) 0%, transparent 50%);
+        }
+
+        .weather-hero-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            color: white;
+        }
+
+        .weather-hero h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .weather-hero p {
+            font-size: 1.2rem;
+            opacity: 0.95;
+        }
+
+        .weather-content {
             padding: 3rem 0;
+        }
+
+        .search-box {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
             margin-bottom: 2rem;
         }
-        
+
+        .search-input {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
         .weather-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
+            gap: 2rem;
         }
-        
+
         .weather-card {
             background: white;
-            border-radius: 16px;
+            border-radius: 20px;
             padding: 2rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s ease;
         }
-        
+
         .weather-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-xl);
         }
-        
+
         .airport-header {
             display: flex;
             justify-content: space-between;
-            align-items: start;
+            align-items: flex-start;
             margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--bg-light);
         }
-        
+
         .airport-code {
-            font-size: 1.8rem;
+            font-size: 2rem;
             font-weight: 700;
-            color: #0ea5e9;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
-        
+
         .airport-name {
             font-size: 0.9rem;
-            color: #6b7280;
+            color: var(--text-light);
             margin-top: 0.25rem;
         }
-        
+
         .weather-main {
             display: flex;
             align-items: center;
-            gap: 1.5rem;
+            gap: 2rem;
             padding: 1.5rem;
             background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-            border-radius: 12px;
+            border-radius: 15px;
             margin-bottom: 1.5rem;
         }
-        
+
         .weather-icon-large {
             font-size: 4rem;
+            flex-shrink: 0;
         }
-        
+
+        .weather-info {
+            flex: 1;
+        }
+
         .temp-display {
             font-size: 3rem;
             font-weight: 700;
-            color: #1f2937;
+            color: var(--text-dark);
+            margin-bottom: 0.25rem;
         }
-        
+
         .condition-display {
             font-size: 1.1rem;
-            color: #6b7280;
+            color: var(--text-light);
+            font-weight: 500;
         }
-        
+
         .weather-details {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 1rem;
             margin-bottom: 1.5rem;
         }
-        
+
         .detail-box {
-            padding: 0.75rem;
-            background: #f9fafb;
-            border-radius: 8px;
-            text-align: center;
-        }
-        
-        .detail-label {
-            font-size: 0.8rem;
-            color: #6b7280;
-            margin-bottom: 0.25rem;
-        }
-        
-        .detail-value {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #1f2937;
-        }
-        
-        .delay-risk-box {
-            padding: 1.25rem;
+            padding: 1rem;
+            background: var(--bg-light);
             border-radius: 12px;
             text-align: center;
+            transition: all 0.3s ease;
         }
-        
+
+        .detail-box:hover {
+            background: #e0f2fe;
+        }
+
+        .detail-label {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .detail-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .delay-risk-box {
+            padding: 1.5rem;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
         .risk-low {
             background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
             color: #065f46;
         }
-        
+
         .risk-moderate {
             background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
             color: #92400e;
         }
-        
+
         .risk-high {
             background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%);
             color: #9a3412;
         }
-        
+
         .risk-severe {
             background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
             color: #991b1b;
         }
-        
+
         .risk-title {
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             font-weight: 600;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.75rem;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
         }
-        
+
         .risk-level {
-            font-size: 1.3rem;
+            font-size: 1.4rem;
             font-weight: 700;
             margin-bottom: 0.5rem;
         }
-        
+
         .risk-details {
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             opacity: 0.9;
         }
-        
+
         .forecast-description {
-            margin-top: 1rem;
             padding: 1rem;
-            background: #f9fafb;
-            border-left: 4px solid #0ea5e9;
-            border-radius: 4px;
-            font-size: 0.9rem;
-            color: #374151;
-        }
-        
-        .search-box {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            margin-bottom: 2rem;
-        }
-        
-        .search-input {
-            width: 100%;
-            padding: 1rem;
-            border: 2px solid #e5e7eb;
+            background: var(--bg-light);
+            border-left: 4px solid var(--primary-color);
             border-radius: 8px;
-            font-size: 1rem;
+            font-size: 0.95rem;
+            color: var(--text-dark);
+            line-height: 1.6;
+            margin-bottom: 1rem;
         }
-        
-        .search-input:focus {
-            outline: none;
-            border-color: #0ea5e9;
-        }
-        
-        .stats-bar {
-            display: flex;
-            gap: 2rem;
-            background: white;
-            padding: 1.5rem 2rem;
-            border-radius: 12px;
-            margin-bottom: 2rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        
-        .stat-item {
+
+        .last-updated {
+            font-size: 0.8rem;
+            color: var(--text-light);
             text-align: center;
         }
-        
-        .stat-number {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #0ea5e9;
-        }
-        
-        .stat-label {
-            font-size: 0.9rem;
-            color: #6b7280;
-        }
-        
-        .navbar {
-            background: transparent;
-            padding: 1rem 0;
-        }
-        
-        .nav-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .nav-brand {
-            color: white;
-            font-size: 1.5rem;
-            font-weight: 700;
-            text-decoration: none;
-        }
-        
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-        }
-        
-        .nav-link {
-            color: #e5e7eb;
-            text-decoration: none;
-            transition: color 0.2s;
-        }
-        
-        .nav-link:hover {
-            color: #0ea5e9;
-        }
-        
+
         .empty-state {
             text-align: center;
             padding: 4rem 2rem;
             background: white;
-            border-radius: 12px;
+            border-radius: 20px;
+            box-shadow: var(--shadow-md);
         }
-        
-        .last-updated {
-            font-size: 0.75rem;
-            color: #9ca3af;
-            margin-top: 0.5rem;
+
+        .empty-icon {
+            font-size: 5rem;
+            margin-bottom: 1rem;
+            opacity: 0.3;
+        }
+
+        .empty-state h2 {
+            font-size: 2rem;
+            color: var(--text-dark);
+            margin-bottom: 1rem;
+        }
+
+        .empty-state p {
+            color: var(--text-light);
+            font-size: 1.1rem;
+        }
+
+        @media (max-width: 768px) {
+            .weather-hero {
+                padding: 6rem 0 3rem;
+            }
+
+            .weather-hero h1 {
+                font-size: 2rem;
+            }
+
+            .weather-hero p {
+                font-size: 1rem;
+            }
+
+            .weather-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .weather-main {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .weather-details {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-bar {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
     <!-- Navigation -->
     <nav class="navbar">
-        <div class="nav-content">
-            <a href="{% url 'home:index' %}" class="nav-brand">✈️ Out of the Sky</a>
-            <div class="nav-links">
-                <a href="{% url 'home:weather_insights' %}" class="nav-link">Weather</a>
+        <div class="container">
+            <div class="nav-brand">
+                <a href="{% url 'home:index' %}">
+                    <h2>✈️ Out of the Sky</h2>
+                </a>
             </div>
+            <ul class="nav-menu">
+                <li><a href="{% url 'home:index' %}">Home</a></li>
+                <li><a href="{% url 'search:search' %}">Search</a></li>
+                <li><a href="{% url 'home:weather_insights' %}">Weather</a></li>
+                <li><a href="{% url 'home:flight_detail' 1 %}" class="btn-primary">Dashboard</a></li>
+            </ul>
         </div>
     </nav>
 
-    <!-- Header -->
-    <div class="weather-header">
+    <!-- Hero Section -->
+    <section class="weather-hero">
+        <div class="container weather-hero-content">
+            <h1>🌤️ Weather & Delay Insights</h1>
+            <p>Real-time weather forecasts and delay predictions for airports worldwide</p>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <section class="weather-content">
         <div class="container">
-            <h1 style="color: white; margin-bottom: 0.5rem;">🌤️ Weather & Delay Insights</h1>
-            <p style="color: rgba(255,255,255,0.9);">Real-time weather forecasts and delay predictions for airports</p>
-        </div>
-    </div>
-
-    <div class="container">
-        <!-- Search Box -->
-        <div class="search-box">
-            <form method="GET" action="{% url 'home:weather_insights' %}">
-                <input 
-                    type="text" 
-                    name="search" 
-                    class="search-input" 
-                    placeholder="Search airports (e.g., DEN, Denver, LAX)" 
-                    value="{{ search_query }}"
-                >
-            </form>
-        </div>
-
-        <!-- Stats Bar -->
-        <div class="stats-bar">
-            <div class="stat-item">
-                <div class="stat-number">{{ total_airports }}</div>
-                <div class="stat-label">Airports Monitored</div>
+            <!-- Search Box -->
+            <div class="search-box">
+                <form method="GET" action="{% url 'home:weather_insights' %}">
+                    <input 
+                        type="text" 
+                        name="search" 
+                        class="search-input" 
+                        placeholder="🔍 Search airports (e.g., DEN, Denver, LAX)" 
+                        value="{{ search_query }}"
+                    >
+                </form>
             </div>
-        </div>
 
-        <!-- Weather Cards -->
-        {% if airports_weather %}
-            <div class="weather-grid">
-                {% for weather in airports_weather %}
-                <div class="weather-card">
-                    <!-- Airport Header -->
-                    <div class="airport-header">
-                        <div>
-                            <div class="airport-code">{{ weather.airport_code }}</div>
-                            <div class="airport-name">{{ weather.airport_name }}</div>
-                        </div>
-                    </div>
+            <!-- Stats Bar -->
+            <div class="stats-bar">
+                <div class="stat-card">
+                    <div class="stat-number">{{ total_airports }}</div>
+                    <div class="stat-label">Airports Monitored</div>
+                </div>
+            </div>
 
-                    <!-- Main Weather Display -->
-                    <div class="weather-main">
-                        <div class="weather-icon-large">{{ weather.get_weather_icon }}</div>
-                        <div>
-                            <div class="temp-display">{{ weather.temperature }}°F</div>
-                            <div class="condition-display">{{ weather.get_condition_display }}</div>
-                        </div>
-                    </div>
-
-                    <!-- Weather Details Grid -->
-                    <div class="weather-details">
-                        <div class="detail-box">
-                            <div class="detail-label">💨 Wind Speed</div>
-                            <div class="detail-value">{{ weather.wind_speed }} mph</div>
-                        </div>
-                        <div class="detail-box">
-                            <div class="detail-label">👁️ Visibility</div>
-                            <div class="detail-value">{{ weather.visibility }} mi</div>
-                        </div>
-                        <div class="detail-box">
-                            <div class="detail-label">🌧️ Precipitation</div>
-                            <div class="detail-value">{{ weather.precipitation_chance }}%</div>
-                        </div>
-                        <div class="detail-box">
-                            <div class="detail-label">🕐 Forecast Time</div>
-                            <div class="detail-value" style="font-size: 0.85rem;">
-                                {{ weather.forecast_time|date:"M d, H:i" }}
+            <!-- Weather Cards -->
+            {% if airports_weather %}
+                <div class="weather-grid">
+                    {% for weather in airports_weather %}
+                    <div class="weather-card">
+                        <!-- Airport Header -->
+                        <div class="airport-header">
+                            <div>
+                                <div class="airport-code">{{ weather.airport_code }}</div>
+                                <div class="airport-name">{{ weather.airport_name }}</div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Delay Risk Box -->
-                    <div class="delay-risk-box risk-{{ weather.delay_risk }}">
-                        <div class="risk-title">⚠️ Delay Risk Assessment</div>
-                        <div class="risk-level">{{ weather.get_delay_risk_display }}</div>
-                        <div class="risk-details">
-                            {{ weather.delay_probability }}% probability
-                            {% if weather.estimated_delay_minutes > 0 %}
-                                • Est. {{ weather.estimated_delay_minutes }} min delay
-                            {% endif %}
+                        <!-- Main Weather Display -->
+                        <div class="weather-main">
+                            <div class="weather-icon-large">{{ weather.get_weather_icon }}</div>
+                            <div class="weather-info">
+                                <div class="temp-display">{{ weather.temperature }}°F</div>
+                                <div class="condition-display">{{ weather.get_condition_display }}</div>
+                            </div>
+                        </div>
+
+                        <!-- Weather Details Grid -->
+                        <div class="weather-details">
+                            <div class="detail-box">
+                                <div class="detail-label">💨 Wind Speed</div>
+                                <div class="detail-value">{{ weather.wind_speed }} mph</div>
+                            </div>
+                            <div class="detail-box">
+                                <div class="detail-label">👁️ Visibility</div>
+                                <div class="detail-value">{{ weather.visibility }} mi</div>
+                            </div>
+                            <div class="detail-box">
+                                <div class="detail-label">🌧️ Precipitation</div>
+                                <div class="detail-value">{{ weather.precipitation_chance }}%</div>
+                            </div>
+                            <div class="detail-box">
+                                <div class="detail-label">🕐 Forecast Time</div>
+                                <div class="detail-value" style="font-size: 0.9rem;">
+                                    {{ weather.forecast_time|date:"M d, H:i" }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Delay Risk Box -->
+                        <div class="delay-risk-box risk-{{ weather.delay_risk }}">
+                            <div class="risk-title">⚠️ Delay Risk Assessment</div>
+                            <div class="risk-level">{{ weather.get_delay_risk_display }}</div>
+                            <div class="risk-details">
+                                {{ weather.delay_probability }}% probability
+                                {% if weather.estimated_delay_minutes > 0 %}
+                                    • Est. {{ weather.estimated_delay_minutes }} min delay
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Forecast Description -->
+                        {% if weather.forecast_description %}
+                        <div class="forecast-description">
+                            {{ weather.forecast_description }}
+                        </div>
+                        {% endif %}
+
+                        <!-- Last Updated -->
+                        <div class="last-updated">
+                            Last updated: {{ weather.last_updated|timesince }} ago
                         </div>
                     </div>
-
-                    <!-- Forecast Description -->
-                    {% if weather.forecast_description %}
-                    <div class="forecast-description">
-                        {{ weather.forecast_description }}
-                    </div>
-                    {% endif %}
-
-                    <!-- Last Updated -->
-                    <div class="last-updated">
-                        Last updated: {{ weather.last_updated|timesince }} ago
-                    </div>
+                    {% endfor %}
                 </div>
-                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">🌐</div>
+                    <h2>No Weather Data Available</h2>
+                    <p>
+                        {% if search_query %}
+                            No airports found matching "{{ search_query }}"
+                        {% else %}
+                            Weather data will appear here once airports are added
+                        {% endif %}
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Out of the Sky</h3>
+                    <p>Real-time flight tracking and aviation intelligence for travelers and enthusiasts worldwide.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Features</h4>
+                    <ul>
+                        <li><a href="{% url 'search:search' %}">Search Flights</a></li>
+                        <li><a href="{% url 'home:weather_insights' %}">Weather Insights</a></li>
+                        <li><a href="{% url 'home:flight_detail' 1 %}">Dashboard</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Connect</h4>
+                    <ul>
+                        <li><a href="#">Contact Us</a></li>
+                        <li><a href="#">GitHub</a></li>
+                        <li><a href="#">Support</a></li>
+                    </ul>
+                </div>
             </div>
-        {% else %}
-            <div class="empty-state">
-                <div style="font-size: 4rem; margin-bottom: 1rem;">🌐</div>
-                <h2>No Weather Data Available</h2>
-                <p style="color: #6b7280; margin: 1rem 0;">
-                    {% if search_query %}
-                        No airports found matching "{{ search_query }}"
-                    {% else %}
-                        Weather data will appear here once airports are added
-                    {% endif %}
-                </p>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Out of the Sky. Created by Ethan Briggs, Alex Lang, Enzo Knapp, and Mason Sowanick.</p>
             </div>
-        {% endif %}
-    </div>
+        </div>
+    </footer>
 
     <script>
         // Auto-refresh every 5 minutes for updated weather
