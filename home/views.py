@@ -61,15 +61,15 @@ def weather_insights(request):
      #   weather_data = AirportWeather.objects.all().order_by('airport_code', '-forecast_time')
     
     # Manually get the latest forecast for each airport (SQLite compatible)
-    for weather in weather_data:
-        if weather.airport_code not in airports_weather:
-            airports_weather[weather.airport_code] = weather
+   # for weather in weather_data:
+    #    if weather.airport_code not in airports_weather:
+     #       airports_weather[weather.airport_code] = weather
     
-    context = {
-        'airports_weather': airports_weather.values(),
-        'search_query': search_query,
-        'total_airports': len(airports_weather),
-    }
+    #context = {
+   #     'airports_weather': airports_weather.values(),
+     #'search_query': search_query,
+      #  'total_airports': len(airports_weather),
+    #}
     
     return render(request, 'home/weather_insights.html', context)
 def _budgets_from_env():
