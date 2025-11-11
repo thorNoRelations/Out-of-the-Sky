@@ -9,4 +9,5 @@ urlpatterns = [
     path('flight/<int:flight_id>/', views.flight_detail, name='flight_detail'),
     path("admin/api-usage/", api_usage_readout, name="api_usage_readout"),
     path('weather/', views.weather_insights, name='weather_insights'),
+    
 ]
