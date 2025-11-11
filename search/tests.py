@@ -11,7 +11,7 @@ class SearchViewsTestCase(TestCase):
     def test_search_page_loads(self):
         """Test that the search page loads successfully"""
         response = self.client.get(reverse('search:search'))
-        self.assertEqual(response.status_code, 200)
+        self.asstEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'search/search.html')
     
     def test_search_by_flight_number(self):
