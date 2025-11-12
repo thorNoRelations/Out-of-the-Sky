@@ -16,16 +16,16 @@ class DummyResp:
 
 def test_missing_api_key_raises(settings, monkeypatch):
     # Ensure no key in settings or env
-    if hasattr(settings, "OPENWEATHERMAP_API_KEY"):
-        delattr(settings, "OPENWEATHERMAP_API_KEY")
-    monkeypatch.delenv("OPENWEATHERMAP_API_KEY", raising=False)
+    if hasattr(settings, "OPENWEATHER_API_KEY"):
+        delattr(settings, "OPENWEATHER_API_KEY")
+    monkeypatch.delenv("OPENWEATHER_API_KEY", raising=False)
 
     with pytest.raises(RuntimeError) as e:
         OpenWeatherClient()
-    assert "OPENWEATHERMAP_API_KEY" in str(e.value)
+    assert "OPENWEATHER_API_KEY" in str(e.value)
 
 def test_success_logs_one_call(monkeypatch, settings):
-    settings.OPENWEATHERMAP_API_KEY = "dummy"
+    settings.OPENWEATHER_API_KEY = "dummy"
     settings.WEATHER_UNITS = "metric"
 
     payload = {
@@ -53,7 +53,7 @@ def test_success_logs_one_call(monkeypatch, settings):
     assert log.latency_ms is not None
 
 def test_error_is_logged_and_raised(monkeypatch, settings):
-    settings.OPENWEATHERMAP_API_KEY = "dummy"
+    settings.OPENWEATHER_API_KEY = "dummy"
 
     def fake_get(url, params=None, timeout=15):
         return DummyResp(401, {"cod":401, "message":"Invalid API key"})
@@ -70,7 +70,7 @@ def test_error_is_logged_and_raised(monkeypatch, settings):
     assert "Invalid API key" in (logs[0].error_message or "")
 
 def test_success_logs_one_call(monkeypatch, settings):
-    settings.OPENWEATHERMAP_API_KEY = "dummy"
+    settings.OPENWEATHER_API_KEY = "dummy"
     settings.WEATHER_UNITS = "metric"
 
     payload = {

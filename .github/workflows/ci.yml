@@ -127,7 +127,11 @@ jobs:
   test-and-coverage:
     name: Run Tests & Coverage
     runs-on: ubuntu-latest
-    
+
+    env:
+      DJANGO_SECRET_KEY:${{secrets.DJANGO_SECRET_KEY}}
+      DJANGO_DEBUG:"false"
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

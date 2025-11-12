@@ -22,7 +22,6 @@ def _norm_key(q: str) -> str:
 class OpenWeatherClient:
     """Minimal client that ONLY calls OpenWeather /weather, logs usage, and saves the latest payload."""
     def __init__(self):
-        self.api_key = getattr(settings, "OPENWEATHER_API_KEY", os.getenv("OPEN_WEATHER_API"))
         self.units = getattr(settings, "WEATHER_UNITS", os.getenv("WEATHER_UNITS"))
         if not self.api_key:
             raise RuntimeError("OPENWEATHER_API_KEY not configured")
