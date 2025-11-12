@@ -234,3 +234,14 @@ __marimo__/
 static/
 staticfiles/
 **/__pycache__/
+
+
+
+*.env
+
+
+
+*.pyc
+*.pyo
+*.pyd
+\

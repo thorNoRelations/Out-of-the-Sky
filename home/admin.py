@@ -4,13 +4,25 @@ from django.contrib import admin
 from django.contrib import admin
 from .models import ApiUsage
 from .models import Flight
+from backend.models import APIRequestLog, AirportWeather
+
+@admin.register(APIRequestLog)
+class APIRequestLogAdmin(admin.ModelAdmin):
+    list_display = ("created_at", "provider", "endpoint", "status_code", "bytes", "latency_ms")
+    list_filter = ("provider", "status_code", "endpoint", "created_at")
+    search_fields = ("error_message",)
 
 @admin.register(ApiUsage)
 class ApiUsageAdmin(admin.ModelAdmin):
-    list_display = ("provider", "yyyymmdd", "count")
+    list_display = ("yyyymmdd", "provider", "count")
     list_filter = ("provider", "yyyymmdd")
-    search_fields = ("provider",)
     ordering = ("-yyyymmdd", "provider")
+
+@admin.register(AirportWeather)
+class AirportWeatherAdmin(admin.ModelAdmin):
+    list_display = ("providerSource", "key", "updated_at")
+    search_fields = ("key",)
+    list_filter = ("providerSource",)
 
 
 @admin.register(Flight)
