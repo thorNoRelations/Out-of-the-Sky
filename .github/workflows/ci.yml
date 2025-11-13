@@ -39,8 +39,6 @@ jobs:
       - name: AI Code Review with OpenAI
         if: steps.changed-files.outputs.any_changed == 'true'
         uses: actions/github-script@v7
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
