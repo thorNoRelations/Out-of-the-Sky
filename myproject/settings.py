@@ -11,12 +11,19 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 import os
+import sys
 from pathlib import Path
 from dotenv import load_dotenv
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Detect if we're running tests (both Django and pytest styles)
+TESTING = (
+    "test" in sys.argv
+    or "pytest" in sys.modules
+    or os.environ.get("PYTEST_CURRENT_TEST")
+)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -25,9 +32,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DJANGO_DEBUG")
+DEBUG = os.environ.get("DJANGO_DEBUG")
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['render']
 
 
 # Application definition
@@ -134,7 +141,6 @@ import sys
 import os
 
 # Check if we're running tests (works for both pytest and Django's test runner)
-TESTING = 'test' in sys.argv or 'pytest' in sys.modules or os.environ.get('PYTEST_CURRENT_TEST')
 
 if TESTING:
     # Use simple static storage for tests (no manifest required)

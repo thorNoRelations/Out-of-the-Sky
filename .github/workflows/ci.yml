@@ -157,12 +157,14 @@ jobs:
         run: python manage.py collectstatic --noinput
 
       - name: Run tests with coverage
+        env:
+          DJANGO_SETTINGS_MODULE: myproject.settings
+          DJANGO_SECRET_KEY: ${{ secrets.DJANGO_SECRET_KEY }}
+          DJANGO_DEBUG: "False"
         run: |
           coverage run --source='.' manage.py test
           coverage report -m
           coverage html
-        env:
-          DJANGO_SETTINGS_MODULE: myproject.settings
 
       - name: Display coverage summary
         run: |
