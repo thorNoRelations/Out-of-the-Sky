@@ -1,4 +1,17 @@
 {% load static %}
+{% if error %}
+  <div style="background:#ffebee;color:#b71c1c;padding:10px;margin:10px;border-radius:6px;">
+    ERROR: {{ error }}
+  </div>
+{% endif %}
+
+{% if weather %}
+  <div style="background:#e3f2fd;color:#0d47a1;padding:15px;margin:10px;border-radius:8px;">
+    <h2>{{ weather.city }}</h2>
+    <p><b>Temperature:</b> {{ weather.temp }}°C</p>
+    <p><b>Condition:</b> {{ weather.condition }}</p>
+  </div>
+{% endif %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -377,7 +390,7 @@
                 <form method="GET" action="{% url 'home:weather_insights' %}">
                     <input 
                         type="text" 
-                        name="search" 
+                        name="q"
                         class="search-input" 
                         placeholder="🔍 Search airports (e.g., DEN, Denver, LAX)" 
                         value="{{ search_query }}"
