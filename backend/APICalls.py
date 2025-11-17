@@ -82,6 +82,34 @@ class OpenWeatherClient:
 
         return data
 
+def fetchOpenSkyFlights(bbox=None, icao24=None):
+    """
+    Fetch live flight data from OpenSky Network API
+    bbox: tuple of (lat_min, lon_min, lat_max, lon_max)
+    icao24: specific aircraft identifier
+    """
+    import requests
+    
+    base_url = "https://opensky-network.org/api/states/all"
+    params = {}
+    
+    if bbox:
+        params['lamin'] = bbox[0]
+        params['lomin'] = bbox[1]
+        params['lamax'] = bbox[2]
+        params['lomax'] = bbox[3]
+    
+    if icao24:
+        params['icao24'] = icao24
+    
+    try:
+        response = requests.get(base_url, params=params, timeout=10)
+        response.raise_for_status()
+        return response.json()
+    except Exception as e:
+        # Return empty structure if API fails
+        return {'time': None, 'states': []}
+
  ###### API USAGE #######
 def _yyyymmdd_now():
      return timezone.now().strftime("%Y%m%d")
