@@ -231,6 +231,17 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
-static/
+
 staticfiles/
 **/__pycache__/
+
+
+
+*.env
+
+
+
+*.pyc
+*.pyo
+*.pyd
+\

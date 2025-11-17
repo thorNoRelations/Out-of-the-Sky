@@ -1,53 +1,35 @@
-
 from django.db import models
 
-class Flight(models.Model):
-    flightNumber = models.CharField(max_length=20, db_index=True, null=True, blank=True)
-    airline = models.CharField(max_length=40, null=True, blank=True)
-    depIata = models.CharField(max_length=10, db_index=True, null=True, blank=True)
-    arrIata = models.CharField(max_length=10, db_index=True, null=True, blank=True)
-    status = models.CharField(max_length=20, null=True, blank=True)
-    depTime = models.CharField(max_length=40, null=True, blank=True)
-    arrTime = models.CharField(max_length=40, null=True, blank=True)
-    lastUpdated = models.DateTimeField(auto_now=True)
-    providerSource = models.CharField(max_length=40, db_index=True)
-    rawJson = models.JSONField(null=True, blank=True)
-    queryHash = models.CharField(max_length=64, db_index=True)
+
+class APIRequestLog(models.Model):
+    """Tracks every outbound OpenWeather call."""
+    provider = models.CharField(max_length=64, db_index=True, default="openweathermap")
+    endpoint = models.CharField(max_length=128, db_index=True)
+    status_code = models.IntegerField()
+    bytes = models.IntegerField(null=True, blank=True)
+    latency_ms = models.IntegerField(null=True, blank=True)
+    error_message = models.TextField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         indexes = [
-            models.Index(fields=["flightNumber", "depIata", "arrIata", "providerSource"], name="ix_flights_composite"),
+            models.Index(fields=["provider", "created_at"], name="ix_provider_created"),
+            models.Index(fields=["provider", "endpoint"], name="ix_provider_endpoint"),
         ]
 
+    def __str__(self):
+        return f"{self.provider} {self.endpoint} {self.status_code} @ {self.created_at:%Y-%m-%d %H:%M:%S}"
+
+
 class AirportWeather(models.Model):
-    icao = models.CharField(max_length=10, db_index=True, null=True, blank=True)
-    iata = models.CharField(max_length=10, db_index=True, null=True, blank=True)
-    observedAt = models.CharField(max_length=40, null=True, blank=True)
-    forecastStart = models.CharField(max_length=40, null=True, blank=True)
-    forecastEnd = models.CharField(max_length=40, null=True, blank=True)
+    """
+    Stores the most recent OpenWeather payload for a given lookup key
+    (we use the exact query string normalized).
+    """
+    providerSource = models.CharField(max_length=64, db_index=True, default="openweathermap")
+    key = models.CharField(max_length=128, unique=True, db_index=True)  # e.g. "denver,us"
     conditionsJson = models.JSONField(null=True, blank=True)
-    providerSource = models.CharField(max_length=40, db_index=True)
-    lastUpdated = models.DateTimeField(auto_now=True)
-    key = models.CharField(max_length=40, db_index=True)  # icaoOrIata
-
-class MapsGeo(models.Model):
-    queryHash = models.CharField(max_length=64, db_index=True)
-    resultJson = models.JSONField(null=True, blank=True)
-    providerSource = models.CharField(max_length=40, db_index=True)
-    lastUpdated = models.DateTimeField(auto_now=True)
-
-
-from django.db import models
-
-class ApiUsage(models.Model):
-    provider = models.CharField(max_length=40, db_index=True)
-    yyyymmdd = models.CharField(max_length=8, db_index=True)
-    count = models.IntegerField(default=0)
-
-    class Meta:
-        unique_together = ("provider", "yyyymmdd")
-        indexes = [models.Index(fields=["provider", "yyyymmdd"])]
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.provider} {self.yyyymmdd}: {self.count}"
-
+        return f"{self.providerSource}:{self.key}"

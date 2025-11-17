@@ -11,22 +11,34 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 import os
+import sys
 from pathlib import Path
-
+from dotenv import load_dotenv
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Detect if we're running tests (both Django and pytest styles)
+TESTING = (
+    "test" in sys.argv
+    or "pytest" in sys.modules
+    or os.environ.get("PYTEST_CURRENT_TEST")
+)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-7rkb6ev+r8ky$p18g2(tn#z=^oza1(#v@92t4^%d8bhmd+4zc0'
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DJANGO_DEBUG")
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [
+    'out-of-the-sky.onrender.com',
+    'localhost',
+    '127.0.0.1',
+]
 
 
 # Application definition
@@ -59,7 +71,7 @@ ROOT_URLCONF = 'myproject.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -133,7 +145,6 @@ import sys
 import os
 
 # Check if we're running tests (works for both pytest and Django's test runner)
-TESTING = 'test' in sys.argv or 'pytest' in sys.modules or os.environ.get('PYTEST_CURRENT_TEST')
 
 if TESTING:
     # Use simple static storage for tests (no manifest required)
