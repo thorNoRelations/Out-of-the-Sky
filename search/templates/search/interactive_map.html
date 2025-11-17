@@ -141,7 +141,7 @@
             minZoom: 3
         }).addTo(map);
 
-        const flightMarkers = new Map();
+        let flightMarkers = new Map();
         let selectedFlight = null;
 
         function createPlaneIcon(heading) {
@@ -154,81 +154,85 @@
         }
 
         async function loadFlights() {
-            const loadingOverlay = document.getElementById('loadingOverlay');
-            const refreshBtn = document.getElementById('refreshBtn');
-            
-            try {
-                refreshBtn.disabled = true;
-                
-                const bounds = map.getBounds();
-                const boundsStr = `${bounds.getSouth()},${bounds.getWest()},${bounds.getNorth()},${bounds.getEast()}`;
-                
-                const response = await fetch(`{% url 'search:get_live_flights' %}?bounds=${boundsStr}`);
-                const data = await response.json();
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const refreshBtn = document.getElementById('refreshBtn');
+    
+    try {
+        refreshBtn.disabled = true;
+        
+        const bounds = map.getBounds();
+        const boundsStr = `${bounds.getSouth()},${bounds.getWest()},${bounds.getNorth()},${bounds.getEast()}`;
+        
+        const response = await fetch(`{% url 'search:get_live_flights' %}?bounds=${boundsStr}`);
+        const data = await response.json();
 
-                if (data.success) {
-                    updateFlightMarkers(data.flights);
-                    updateFlightCounter(data.count);
-                    updateLastUpdateTime();
-                } else {
-                    console.error('Failed to load flights:', data.error);
-                    alert('Failed to load flight data. Please try again.');
-                }
-            } catch (error) {
-                console.error('Error loading flights:', error);
-                alert('Error loading flight data. Please check your connection.');
-            } finally {
-                loadingOverlay.style.display = 'none';
-                refreshBtn.disabled = false;
-            }
+        if (data.success) {
+            // CRITICAL: Clear ALL old markers first
+            flightMarkers.forEach(marker => {
+                map.removeLayer(marker);
+            });
+            flightMarkers.clear();
+            
+            // Now add the new flights (max 200)
+            updateFlightMarkers(data.flights);
+            
+            // Update counter with EXACT count from API
+            updateFlightCounter(data.count);
+            updateLastUpdateTime();
+        } else {
+            console.error('Failed to load flights:', data.error);
+            alert('Failed to load flight data. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error loading flights:', error);
+        alert('Error loading flight data. Please check your connection.');
+    } finally {
+        loadingOverlay.style.display = 'none';
+        refreshBtn.disabled = false;
+    }
+}
+
+        function clearAllMarkers() {
+            // Remove all markers from map
+            flightMarkers.forEach(marker => {
+                map.removeLayer(marker);
+            });
+            // Clear the markers map
+            flightMarkers.clear();
         }
 
         function updateFlightMarkers(flights) {
-            const activeFlights = new Set();
+            // Limit to 200 flights maximum (frontend safety net)
+            const limitedFlights = flights.slice(0, 200);
 
-            flights.forEach(flight => {
-                activeFlights.add(flight.icao24);
+            limitedFlights.forEach(flight => {
+                const marker = L.marker([flight.latitude, flight.longitude], {
+                    icon: createPlaneIcon(flight.heading)
+                }).addTo(map);
 
-                if (flightMarkers.has(flight.icao24)) {
-                    const marker = flightMarkers.get(flight.icao24);
-                    marker.setLatLng([flight.latitude, flight.longitude]);
-                    marker.setIcon(createPlaneIcon(flight.heading));
-                } else {
-                    const marker = L.marker([flight.latitude, flight.longitude], {
-                        icon: createPlaneIcon(flight.heading)
-                    }).addTo(map);
+                const popupContent = `
+                    <div class="popup-callsign">${flight.callsign}</div>
+                    <div class="popup-detail">
+                        <span>Altitude:</span>
+                        <strong>${flight.altitude.toLocaleString()} ft</strong>
+                    </div>
+                    <div class="popup-detail">
+                        <span>Speed:</span>
+                        <strong>${flight.speed} knots</strong>
+                    </div>
+                    <div class="popup-detail">
+                        <span>Heading:</span>
+                        <strong>${Math.round(flight.heading)}°</strong>
+                    </div>
+                `;
+                marker.bindPopup(popupContent);
 
-                    const popupContent = `
-                        <div class="popup-callsign">${flight.callsign}</div>
-                        <div class="popup-detail">
-                            <span>Altitude:</span>
-                            <strong>${flight.altitude.toLocaleString()} ft</strong>
-                        </div>
-                        <div class="popup-detail">
-                            <span>Speed:</span>
-                            <strong>${flight.speed} knots</strong>
-                        </div>
-                        <div class="popup-detail">
-                            <span>Heading:</span>
-                            <strong>${Math.round(flight.heading)}°</strong>
-                        </div>
-                    `;
-                    marker.bindPopup(popupContent);
+                marker.on('click', () => {
+                    showFlightDetails(flight);
+                });
 
-                    marker.on('click', () => {
-                        showFlightDetails(flight);
-                    });
-
-                    flightMarkers.set(flight.icao24, marker);
-                }
+                flightMarkers.set(flight.icao24, marker);
             });
-
-            for (const [icao24, marker] of flightMarkers.entries()) {
-                if (!activeFlights.has(icao24)) {
-                    map.removeLayer(marker);
-                    flightMarkers.delete(icao24);
-                }
-            }
         }
 
         function showFlightDetails(flight) {
@@ -290,7 +294,10 @@
             selectedFlight = null;
         });
 
+        // Refresh every 30 seconds
         setInterval(loadFlights, 30000);
+        
+        // Initial load
         loadFlights();
     </script>
 </body>

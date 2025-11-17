@@ -117,7 +117,7 @@ def get_live_flights(request):
         flights = []
         states = opensky_data.get('states', [])
         
-        for state in states:
+        for state in states[:200]:  # LIMIT TO 200 PLANES PER REQUEST
             #OpenSky state vector format:
             #[0]=icao24, [1]=callsign, [5]=longitude, [6]=latitude, 
             #[7]=baro_altitude, [9]=velocity, [10]=true_track
@@ -154,6 +154,9 @@ def get_live_flights(request):
             
             flights.append(flight_data)
         
+        # ADDITIONAL LIMIT: Cap total flights returned to 200 max
+        flights = flights[:200]
+        
         return JsonResponse({
             'success': True,
             'count': len(flights),
@@ -167,7 +170,6 @@ def get_live_flights(request):
             'error': str(e),
             'flights': []
         }, status=500)
-
 
 @require_http_methods(["GET"])
 def get_flight_details(request, icao24):
