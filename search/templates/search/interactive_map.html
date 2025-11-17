@@ -1,0 +1,297 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Flight Map - Out of the Sky</title>
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <style>
+        body { margin: 0; padding: 0; overflow: hidden; }
+        #map { position: fixed; top: 60px; left: 0; right: 0; bottom: 0; z-index: 1; }
+        
+        .map-controls {
+            position: fixed; top: 80px; right: 20px; z-index: 1000;
+            background: white; border-radius: 15px; padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); max-width: 300px;
+        }
+        .control-header { font-size: 1.2rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-dark); }
+        .flight-counter {
+            display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem;
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            border-radius: 10px; margin-bottom: 1rem;
+        }
+        .counter-number { font-size: 1.5rem; font-weight: 700; color: var(--primary-color); }
+        .counter-label { font-size: 0.9rem; color: var(--text-dark); }
+        .refresh-btn {
+            width: 100%; padding: 0.75rem; background: var(--gradient-primary);
+            color: white; border: none; border-radius: 10px; font-weight: 600;
+            cursor: pointer; transition: transform 0.3s ease; margin-bottom: 0.5rem;
+        }
+        .refresh-btn:hover { transform: translateY(-2px); }
+        .refresh-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .last-update { font-size: 0.8rem; color: var(--text-light); text-align: center; }
+        
+        .flight-details-panel {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            z-index: 1000; background: white; border-radius: 20px; padding: 2rem;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2); max-width: 600px; width: 90%; display: none;
+        }
+        .flight-details-panel.active { display: block; animation: slideUp 0.3s ease; }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+        .panel-header {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;
+        }
+        .panel-title { font-size: 1.5rem; font-weight: 700; color: var(--primary-color); }
+        .close-btn {
+            background: none; border: none; font-size: 1.5rem; cursor: pointer;
+            color: var(--text-light); transition: color 0.3s ease;
+        }
+        .close-btn:hover { color: var(--text-dark); }
+        .detail-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+        .detail-item { padding: 1rem; background: #f8fafc; border-radius: 10px; }
+        .detail-label { font-size: 0.85rem; color: var(--text-light); margin-bottom: 0.25rem; }
+        .detail-value { font-size: 1.2rem; font-weight: 700; color: var(--text-dark); }
+        
+        .loading-overlay {
+            position: fixed; top: 60px; left: 0; right: 0; bottom: 0;
+            background: rgba(255, 255, 255, 0.9); display: flex; flex-direction: column;
+            align-items: center; justify-content: center; z-index: 2000;
+        }
+        .spinner {
+            width: 50px; height: 50px; border: 4px solid #f3f4f6;
+            border-top-color: var(--primary-color); border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text { margin-top: 1rem; font-size: 1.1rem; color: var(--text-dark); }
+        
+        .plane-marker { background: none; border: none; }
+        .plane-icon {
+            font-size: 24px; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            filter: drop-shadow(0 0 3px white);
+        }
+        .leaflet-popup-content-wrapper { border-radius: 15px; padding: 0; }
+        .leaflet-popup-content { margin: 0; padding: 1rem; min-width: 200px; }
+        .popup-callsign { font-size: 1.2rem; font-weight: 700; color: var(--primary-color); margin-bottom: 0.5rem; }
+        .popup-detail {
+            display: flex; justify-content: space-between; padding: 0.25rem 0; font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .map-controls { top: 70px; right: 10px; left: 10px; max-width: none; padding: 1rem; }
+            .flight-details-panel { bottom: 10px; width: 95%; padding: 1.5rem; }
+            .detail-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <a href="{% url 'home:index' %}"><h2>✈️ Out of the Sky</h2></a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="{% url 'home:index' %}">Home</a></li>
+                <li><a href="{% url 'search:search' %}">Search</a></li>
+                <li><a href="{% url 'search:interactive_map' %}">Live Map</a></li>
+                <li><a href="{% url 'home:flight_detail' 1 %}" class="btn-primary">Dashboard</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div id="map"></div>
+
+    <div class="map-controls">
+        <div class="control-header">🛰️ Live Flights</div>
+        <div class="flight-counter">
+            <div class="counter-number" id="flightCount">0</div>
+            <div class="counter-label">flights tracked</div>
+        </div>
+        <button id="refreshBtn" class="refresh-btn">🔄 Refresh Data</button>
+        <div class="last-update" id="lastUpdate">Loading...</div>
+    </div>
+
+    <div id="flightDetailsPanel" class="flight-details-panel">
+        <div class="panel-header">
+            <div class="panel-title" id="panelCallsign">Flight Details</div>
+            <button id="closePanel" class="close-btn">×</button>
+        </div>
+        <div class="detail-grid" id="detailGrid"></div>
+    </div>
+
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <div class="loading-text">Loading flight data...</div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        const map = L.map('map').setView([{{ map_center_lat }}, {{ map_center_lon }}], {{ default_zoom }});
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 19,
+            minZoom: 3
+        }).addTo(map);
+
+        const flightMarkers = new Map();
+        let selectedFlight = null;
+
+        function createPlaneIcon(heading) {
+            return L.divIcon({
+                className: 'plane-marker',
+                html: `<div class="plane-icon" style="transform: rotate(${heading}deg)">✈️</div>`,
+                iconSize: [32, 32],
+                iconAnchor: [16, 16]
+            });
+        }
+
+        async function loadFlights() {
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            const refreshBtn = document.getElementById('refreshBtn');
+            
+            try {
+                refreshBtn.disabled = true;
+                
+                const bounds = map.getBounds();
+                const boundsStr = `${bounds.getSouth()},${bounds.getWest()},${bounds.getNorth()},${bounds.getEast()}`;
+                
+                const response = await fetch(`{% url 'search:get_live_flights' %}?bounds=${boundsStr}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    updateFlightMarkers(data.flights);
+                    updateFlightCounter(data.count);
+                    updateLastUpdateTime();
+                } else {
+                    console.error('Failed to load flights:', data.error);
+                    alert('Failed to load flight data. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error loading flights:', error);
+                alert('Error loading flight data. Please check your connection.');
+            } finally {
+                loadingOverlay.style.display = 'none';
+                refreshBtn.disabled = false;
+            }
+        }
+
+        function updateFlightMarkers(flights) {
+            const activeFlights = new Set();
+
+            flights.forEach(flight => {
+                activeFlights.add(flight.icao24);
+
+                if (flightMarkers.has(flight.icao24)) {
+                    const marker = flightMarkers.get(flight.icao24);
+                    marker.setLatLng([flight.latitude, flight.longitude]);
+                    marker.setIcon(createPlaneIcon(flight.heading));
+                } else {
+                    const marker = L.marker([flight.latitude, flight.longitude], {
+                        icon: createPlaneIcon(flight.heading)
+                    }).addTo(map);
+
+                    const popupContent = `
+                        <div class="popup-callsign">${flight.callsign}</div>
+                        <div class="popup-detail">
+                            <span>Altitude:</span>
+                            <strong>${flight.altitude.toLocaleString()} ft</strong>
+                        </div>
+                        <div class="popup-detail">
+                            <span>Speed:</span>
+                            <strong>${flight.speed} knots</strong>
+                        </div>
+                        <div class="popup-detail">
+                            <span>Heading:</span>
+                            <strong>${Math.round(flight.heading)}°</strong>
+                        </div>
+                    `;
+                    marker.bindPopup(popupContent);
+
+                    marker.on('click', () => {
+                        showFlightDetails(flight);
+                    });
+
+                    flightMarkers.set(flight.icao24, marker);
+                }
+            });
+
+            for (const [icao24, marker] of flightMarkers.entries()) {
+                if (!activeFlights.has(icao24)) {
+                    map.removeLayer(marker);
+                    flightMarkers.delete(icao24);
+                }
+            }
+        }
+
+        function showFlightDetails(flight) {
+            selectedFlight = flight;
+            const panel = document.getElementById('flightDetailsPanel');
+            const callsign = document.getElementById('panelCallsign');
+            const detailGrid = document.getElementById('detailGrid');
+
+            callsign.textContent = flight.callsign;
+
+            detailGrid.innerHTML = `
+                <div class="detail-item">
+                    <div class="detail-label">ICAO24</div>
+                    <div class="detail-value">${flight.icao24}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Altitude</div>
+                    <div class="detail-value">${flight.altitude.toLocaleString()} ft</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Speed</div>
+                    <div class="detail-value">${flight.speed} knots</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Heading</div>
+                    <div class="detail-value">${Math.round(flight.heading)}°</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Latitude</div>
+                    <div class="detail-value">${flight.latitude.toFixed(4)}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Longitude</div>
+                    <div class="detail-value">${flight.longitude.toFixed(4)}</div>
+                </div>
+            `;
+
+            panel.classList.add('active');
+            map.setView([flight.latitude, flight.longitude], 10, {
+                animate: true,
+                duration: 1
+            });
+        }
+
+        function updateFlightCounter(count) {
+            document.getElementById('flightCount').textContent = count;
+        }
+
+        function updateLastUpdateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString();
+            document.getElementById('lastUpdate').textContent = `Updated: ${timeString}`;
+        }
+
+        document.getElementById('refreshBtn').addEventListener('click', loadFlights);
+
+        document.getElementById('closePanel').addEventListener('click', () => {
+            document.getElementById('flightDetailsPanel').classList.remove('active');
+            selectedFlight = null;
+        });
+
+        setInterval(loadFlights, 30000);
+        loadFlights();
+    </script>
+</body>
+</html>
