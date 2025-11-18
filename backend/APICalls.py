@@ -18,12 +18,33 @@ def _norm_key(q: str) -> str:
 class OpenWeatherClient:
     """Minimal client that ONLY calls OpenWeather /weather, logs usage, and saves the latest payload."""
     def __init__(self):
-        # Get settings from Django settings (no .env needed)
-        self.api_key = settings.OPENWEATHER_API_KEY
-        self.units = settings.WEATHER_UNITS
+        # Try multiple ways to get the API key
+        self.api_key = None
+        
+        # Method 1: From Django settings
+        if hasattr(settings, 'OPENWEATHER_API_KEY'):
+            self.api_key = settings.OPENWEATHER_API_KEY
+        
+        # Method 2: Directly from environment (fallback)
+        if not self.api_key:
+            self.api_key = os.environ.get('OPENWEATHER_API_KEY')
         
         if not self.api_key:
-            raise RuntimeError("OPENWEATHER_API_KEY not configured in settings.py")
+            self.api_key = os.environ.get('OPENWEATHERMAP_API_KEY')
+        
+        # Get units with fallback
+        self.units = getattr(settings, 'WEATHER_UNITS', 'imperial')
+        
+        # Enhanced error message with debugging info
+        if not self.api_key:
+            env_keys = [k for k in os.environ.keys() if 'WEATHER' in k.upper() or 'OPEN' in k.upper()]
+            error_msg = (
+                f"OPENWEATHER_API_KEY not configured.\n"
+                f"Checked settings.OPENWEATHER_API_KEY: {hasattr(settings, 'OPENWEATHER_API_KEY')}\n"
+                f"Environment variables with WEATHER/OPEN: {env_keys}\n"
+                f"Set OPENWEATHER_API_KEY in Render environment variables and redeploy."
+            )
+            raise RuntimeError(error_msg)
 
     def fetch_city(self, q: str) -> Dict[str, Any]:
         if not q or not q.strip():
@@ -120,31 +141,3 @@ def bump_api_usage(provider: str):
     )
     # atomic increment
     ApiUsage.objects.filter(pk=obj.pk).update(count=F("count") + 1)
-
-def fetchOpenSkyFlights(bbox=None, icao24=None):
-    """
-    Fetch live flight data from OpenSky Network API
-    bbox: tuple of (lat_min, lon_min, lat_max, lon_max)
-    icao24: specific aircraft identifier
-    """
-    import requests
-    
-    base_url = "https://opensky-network.org/api/states/all"
-    params = {}
-    
-    if bbox:
-        params['lamin'] = bbox[0]
-        params['lomin'] = bbox[1]
-        params['lamax'] = bbox[2]
-        params['lomax'] = bbox[3]
-    
-    if icao24:
-        params['icao24'] = icao24
-    
-    try:
-        response = requests.get(base_url, params=params, timeout=10)
-        response.raise_for_status()
-        return response.json()
-    except Exception as e:
-        # Return empty structure if API fails
-        return {'time': None, 'states': []}
