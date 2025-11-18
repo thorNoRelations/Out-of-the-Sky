@@ -1,0 +1,441 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Delay Prediction - Out of the Sky</title>
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        .ai-hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 8rem 0 4rem;
+            margin-top: 60px;
+            color: white;
+            text-align: center;
+        }
+        
+        .ai-hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .prediction-container {
+            max-width: 900px;
+            margin: -4rem auto 4rem;
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-dark);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .btn-predict {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 3rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 1rem;
+        }
+        
+        .btn-predict:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-predict:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .prediction-results {
+            margin-top: 3rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%);
+            border-radius: 15px;
+            display: none;
+        }
+        
+        .prediction-results.show {
+            display: block;
+            animation: slideIn 0.5s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .probability-display {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .probability-circle {
+            width: 180px;
+            height: 180px;
+            margin: 0 auto 1rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            font-weight: 700;
+            position: relative;
+        }
+        
+        .risk-low { background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); color: #065f46; }
+        .risk-moderate { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); color: #92400e; }
+        .risk-high { background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%); color: #9a3412; }
+        .risk-severe { background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); color: #991b1b; }
+        
+        .risk-label {
+            font-size: 1.2rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .delay-estimate {
+            font-size: 1.5rem;
+            margin: 1rem 0;
+            color: var(--text-dark);
+        }
+        
+        .factors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        
+        .factor-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .factor-card.high { border-left-color: #ef4444; }
+        .factor-card.moderate { border-left-color: #f59e0b; }
+        .factor-card.low { border-left-color: #10b981; }
+        
+        .factor-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-dark);
+        }
+        
+        .factor-description {
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+        
+        .recommendations {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-top: 1.5rem;
+        }
+        
+        .recommendations h3 {
+            margin-bottom: 1rem;
+            color: var(--text-dark);
+        }
+        
+        .recommendations ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .recommendations li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+        
+        .recommendations li:before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: 700;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            display: none;
+        }
+        
+        .loading.show {
+            display: block;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            margin: 0 auto 1rem;
+            border: 4px solid #f3f4f6;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 768px) {
+            .ai-hero h1 { font-size: 2rem; }
+            .prediction-container { padding: 2rem 1.5rem; margin: -3rem 1rem 3rem; }
+            .form-row { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <a href="{% url 'home:index' %}"><h2>✈️ Out of the Sky</h2></a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="{% url 'home:index' %}">Home</a></li>
+                <li><a href="{% url 'search:search' %}">Search</a></li>
+                <li><a href="{% url 'home:weather_insights' %}">Weather</a></li>
+                <li><a href="{% url 'home:delay_prediction' %}" class="btn-primary">AI Prediction</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <section class="ai-hero">
+        <div class="container">
+            <h1>🤖 AI Delay Prediction</h1>
+            <p style="font-size: 1.2rem; opacity: 0.95;">
+                Machine learning-powered predictions using weather, airline performance, and historical data
+            </p>
+        </div>
+    </section>
+
+    <div class="container">
+        <div class="prediction-container">
+            <form id="predictionForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="origin">🛫 Origin Airport</label>
+                        <select id="origin" name="origin" class="form-control" required>
+                            <option value="">Select origin...</option>
+                            {% for airport in airports %}
+                            <option value="{{ airport.code }}">{{ airport.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="destination">🛬 Destination Airport</label>
+                        <select id="destination" name="destination" class="form-control" required>
+                            <option value="">Select destination...</option>
+                            {% for airport in airports %}
+                            <option value="{{ airport.code }}">{{ airport.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="departure_date">📅 Departure Date</label>
+                        <input type="date" id="departure_date" name="departure_date" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="departure_time">🕐 Departure Time</label>
+                        <input type="time" id="departure_time" name="departure_time" class="form-control" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="airline">🏢 Airline (Optional)</label>
+                        <input type="text" id="airline" name="airline" class="form-control" placeholder="e.g., United Airlines">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="flight_number">✈️ Flight Number (Optional)</label>
+                        <input type="text" id="flight_number" name="flight_number" class="form-control" placeholder="e.g., UA205">
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-predict" id="predictBtn">
+                    🔮 Predict Delay Probability
+                </button>
+            </form>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Analyzing flight conditions...</p>
+            </div>
+            
+            <div class="prediction-results" id="results">
+                <div class="probability-display">
+                    <div class="probability-circle" id="probabilityCircle">
+                        <span id="probabilityValue">--</span>
+                    </div>
+                    <div class="risk-label" id="riskLabel">--</div>
+                    <div class="delay-estimate" id="delayEstimate">--</div>
+                    <div style="color: var(--text-light); font-size: 0.9rem;">
+                        Confidence: <span id="confidence">--</span>%
+                    </div>
+                </div>
+                
+                <h3 style="margin-top: 2rem; margin-bottom: 1rem;">Contributing Factors</h3>
+                <div class="factors-grid" id="factorsGrid"></div>
+                
+                <div class="recommendations">
+                    <h3>💡 Recommendations</h3>
+                    <ul id="recommendationsList"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Set default date to today
+        document.getElementById('departure_date').valueAsDate = new Date();
+        
+        // Set default time to 2 hours from now
+        const now = new Date();
+        now.setHours(now.getHours() + 2);
+        document.getElementById('departure_time').value = now.toTimeString().slice(0, 5);
+        
+        document.getElementById('predictionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const form = e.target;
+            const formData = new FormData(form);
+            
+            // Combine date and time
+            const date = formData.get('departure_date');
+            const time = formData.get('departure_time');
+            const departure_time = `${date}T${time}:00`;
+            
+            // Show loading
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('results').classList.remove('show');
+            document.getElementById('predictBtn').disabled = true;
+            
+            try {
+                const params = new URLSearchParams({
+                    origin: formData.get('origin'),
+                    destination: formData.get('destination'),
+                    departure_time: departure_time,
+                    airline: formData.get('airline') || 'Unknown',
+                    flight_number: formData.get('flight_number') || ''
+                });
+                
+                const response = await fetch(`/api/predict-delay/?${params}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayPrediction(data.prediction);
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Failed to get prediction: ' + error.message);
+            } finally {
+                document.getElementById('loading').classList.remove('show');
+                document.getElementById('predictBtn').disabled = false;
+            }
+        });
+        
+        function displayPrediction(prediction) {
+            const prob = prediction.delay_probability;
+            const risk = prediction.risk_level;
+            
+            // Update probability display
+            document.getElementById('probabilityValue').textContent = `${prob}%`;
+            document.getElementById('riskLabel').textContent = risk.toUpperCase() + ' RISK';
+            
+            // Update circle color based on risk
+            const circle = document.getElementById('probabilityCircle');
+            circle.className = 'probability-circle risk-' + risk;
+            
+            // Delay estimate
+            const delayMin = prediction.estimated_delay_minutes;
+            if (delayMin > 0) {
+                document.getElementById('delayEstimate').textContent = 
+                    `Estimated ${delayMin} minute delay`;
+            } else {
+                document.getElementById('delayEstimate').textContent = 
+                    'Minimal delay expected';
+            }
+            
+            // Confidence
+            document.getElementById('confidence').textContent = 
+                Math.round(prediction.confidence * 100);
+            
+            // Contributing factors
+            const factorsGrid = document.getElementById('factorsGrid');
+            factorsGrid.innerHTML = prediction.contributing_factors.map(factor => `
+                <div class="factor-card ${factor.impact}">
+                    <div class="factor-title">${factor.factor}</div>
+                    <div class="factor-description">${factor.description}</div>
+                </div>
+            `).join('');
+            
+            // Recommendations
+            const recList = document.getElementById('recommendationsList');
+            recList.innerHTML = prediction.recommendations.map(rec => 
+                `<li>${rec}</li>`
+            ).join('');
+            
+            // Show results
+            document.getElementById('results').classList.add('show');
+        }
+    </script>
+</body>
+</html>

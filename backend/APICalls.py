@@ -3,14 +3,10 @@ import time
 import requests
 from typing import Dict, Any
 from django.conf import settings
-from dotenv import load_dotenv
-
 from home.models import ApiUsage
 from .models import APIRequestLog, AirportWeather
 from django.db.models import F
 from django.utils import timezone
-
-load_dotenv()
 
 PROVIDER = "openweathermap"
 BASE_URL = "https://api.openweathermap.org/data/2.5/weather"
@@ -22,11 +18,12 @@ def _norm_key(q: str) -> str:
 class OpenWeatherClient:
     """Minimal client that ONLY calls OpenWeather /weather, logs usage, and saves the latest payload."""
     def __init__(self):
-
-        self.api_key = getattr(settings, "OPENWEATHER_API_KEY", os.getenv("OPENWEATHER_API_KEY"))
-        self.units = getattr(settings, "WEATHER_UNITS", os.getenv("WEATHER_UNITS"))
+        # Get settings from Django settings (no .env needed)
+        self.api_key = settings.OPENWEATHER_API_KEY
+        self.units = settings.WEATHER_UNITS
+        
         if not self.api_key:
-            raise RuntimeError("OPENWEATHER_API_KEY")
+            raise RuntimeError("OPENWEATHER_API_KEY not configured in settings.py")
 
     def fetch_city(self, q: str) -> Dict[str, Any]:
         if not q or not q.strip():
@@ -72,7 +69,8 @@ class OpenWeatherClient:
             latency_ms=latency_ms,
         )
         bump_api_usage(PROVIDER)
-        # -- NEW: save latest payload for weather map --
+        
+        # Save latest payload for weather map
         key = _norm_key(q)
         obj, _ = AirportWeather.objects.get_or_create(
             providerSource=PROVIDER, key=key, defaults={"conditionsJson": data}
@@ -82,12 +80,16 @@ class OpenWeatherClient:
 
         return data
 
- ###### API USAGE #######
+
+###### API USAGE #######
 def _yyyymmdd_now():
-     return timezone.now().strftime("%Y%m%d")
+    return timezone.now().strftime("%Y%m%d")
+
 
 def bump_api_usage(provider: str):
     ymd = _yyyymmdd_now()
-    obj, created = ApiUsage.objects.get_or_create(provider=provider, yyyymmdd=ymd, defaults={"count": 0})
+    obj, created = ApiUsage.objects.get_or_create(
+        provider=provider, yyyymmdd=ymd, defaults={"count": 0}
+    )
     # atomic increment
     ApiUsage.objects.filter(pk=obj.pk).update(count=F("count") + 1)
