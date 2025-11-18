@@ -19,15 +19,18 @@ class OpenWeatherClient:
     """Minimal client that ONLY calls OpenWeather /weather, logs usage, and saves the latest payload."""
     
     def __init__(self):
-        # Get API key from settings (which reads from environment)
-        self.api_key = getattr(settings, 'OPENWEATHER_API_KEY', None)
+        # Get API key directly from environment variable (same as settings.py)
+        self.api_key = os.environ.get("OPENWEATHER_API_KEY", "").strip('"\'')
         
-        # Strip any quotes that might have been in the .env file
-        if self.api_key:
-            self.api_key = self.api_key.strip('"\'')
+        # Fallback to Django settings if not in environment
+        if not self.api_key:
+            self.api_key = getattr(settings, 'OPENWEATHER_API_KEY', None)
+            if self.api_key:
+                self.api_key = self.api_key.strip('"\'')
         
-        # Get units from settings
-        self.units = getattr(settings, 'WEATHER_UNITS', 'imperial')
+        # Get units from environment or settings
+        self.units = os.environ.get("WEATHER_UNITS", 
+                                    getattr(settings, 'WEATHER_UNITS', 'imperial')).strip('"\'')
         
         # Enhanced error message with debugging info
         if not self.api_key:
@@ -37,6 +40,7 @@ class OpenWeatherClient:
                 f"\n"
                 f"Configuration Status:\n"
                 f"  - settings.OPENWEATHER_API_KEY exists: {hasattr(settings, 'OPENWEATHER_API_KEY')}\n"
+                f"  - os.environ OPENWEATHER_API_KEY exists: {'OPENWEATHER_API_KEY' in os.environ}\n"
                 f"  - Environment variables with WEATHER/OPEN: {env_keys}\n"
                 f"\n"
                 f"🔧 Fix this by:\n"

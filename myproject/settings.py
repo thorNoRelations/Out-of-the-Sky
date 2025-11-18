@@ -6,9 +6,20 @@ All configuration from environment variables.
 import os
 import sys
 from pathlib import Path
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load environment variables from .env file (if it exists)
+# This loads the .env file in the project root
+env_path = BASE_DIR / '.env'
+if env_path.exists():
+    load_dotenv(env_path)
+    print(f"✓ Loaded .env file from {env_path}")
+else:
+    # On Render, environment variables are set directly, so this is fine
+    print("ℹ️  No .env file found - using system environment variables")
 
 # Detect if we're running tests
 TESTING = (
