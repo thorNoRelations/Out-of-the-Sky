@@ -17,34 +17,41 @@ def _norm_key(q: str) -> str:
 
 class OpenWeatherClient:
     """Minimal client that ONLY calls OpenWeather /weather, logs usage, and saves the latest payload."""
+    
     def __init__(self):
-        # Try multiple ways to get the API key
-        self.api_key = None
+        # Get API key from settings (which reads from environment)
+        self.api_key = getattr(settings, 'OPENWEATHER_API_KEY', None)
         
-        # Method 1: From Django settings
-        if hasattr(settings, 'OPENWEATHER_API_KEY'):
-            self.api_key = settings.OPENWEATHER_API_KEY
+        # Strip any quotes that might have been in the .env file
+        if self.api_key:
+            self.api_key = self.api_key.strip('"\'')
         
-        # Method 2: Directly from environment (fallback)
-        if not self.api_key:
-            self.api_key = os.environ.get('OPENWEATHER_API_KEY')
-        
-        if not self.api_key:
-            self.api_key = os.environ.get('OPENWEATHERMAP_API_KEY')
-        
-        # Get units with fallback
+        # Get units from settings
         self.units = getattr(settings, 'WEATHER_UNITS', 'imperial')
         
         # Enhanced error message with debugging info
         if not self.api_key:
             env_keys = [k for k in os.environ.keys() if 'WEATHER' in k.upper() or 'OPEN' in k.upper()]
             error_msg = (
-                f"OPENWEATHER_API_KEY not configured.\n"
-                f"Checked settings.OPENWEATHER_API_KEY: {hasattr(settings, 'OPENWEATHER_API_KEY')}\n"
-                f"Environment variables with WEATHER/OPEN: {env_keys}\n"
-                f"Set OPENWEATHER_API_KEY in Render environment variables and redeploy."
+                f"❌ OPENWEATHER_API_KEY not configured!\n"
+                f"\n"
+                f"Configuration Status:\n"
+                f"  - settings.OPENWEATHER_API_KEY exists: {hasattr(settings, 'OPENWEATHER_API_KEY')}\n"
+                f"  - Environment variables with WEATHER/OPEN: {env_keys}\n"
+                f"\n"
+                f"🔧 Fix this by:\n"
+                f"  1. Check your .env file in Render has: OPENWEATHER_API_KEY=your_key_here\n"
+                f"  2. Make sure there are NO quotes around the key value\n"
+                f"  3. Redeploy your application on Render\n"
             )
             raise RuntimeError(error_msg)
+        
+        # Validate key format
+        if len(self.api_key) < 20:
+            raise RuntimeError(
+                f"⚠️  OPENWEATHER_API_KEY seems invalid (too short: {len(self.api_key)} chars). "
+                f"Check your Render environment variables."
+            )
 
     def fetch_city(self, q: str) -> Dict[str, Any]:
         if not q or not q.strip():
@@ -52,7 +59,12 @@ class OpenWeatherClient:
 
         params = {"q": q.strip(), "appid": self.api_key, "units": self.units}
         t0 = time.time()
-        resp = requests.get(BASE_URL, params=params, timeout=15)
+        
+        try:
+            resp = requests.get(BASE_URL, params=params, timeout=15)
+        except requests.exceptions.RequestException as e:
+            raise RuntimeError(f"Network error calling OpenWeather API: {str(e)}")
+        
         latency_ms = int((time.time() - t0) * 1000)
 
         content_len = None
@@ -62,6 +74,7 @@ class OpenWeatherClient:
             pass
 
         endpoint = "/data/2.5/weather"
+        
         if resp.status_code != 200:
             error_message = None
             try:
@@ -79,9 +92,27 @@ class OpenWeatherClient:
                 error_message=error_message,
             )
             bump_api_usage(PROVIDER)
-            raise RuntimeError(f"OpenWeather error {resp.status_code}: {error_message or 'unknown error'}")
+            
+            # Provide helpful error messages
+            if resp.status_code == 401:
+                raise RuntimeError(
+                    f"❌ OpenWeather API Authentication Failed (401)\n"
+                    f"Error: {error_message}\n"
+                    f"\n"
+                    f"This usually means:\n"
+                    f"  - Your API key is invalid or expired\n"
+                    f"  - Your API key hasn't been activated yet (wait 10 minutes after signup)\n"
+                    f"\n"
+                    f"Check your Render environment variables and ensure OPENWEATHER_API_KEY is correct."
+                )
+            else:
+                raise RuntimeError(
+                    f"OpenWeather API error {resp.status_code}: {error_message or 'unknown error'}"
+                )
 
         data = resp.json()
+        
+        # Log successful request
         APIRequestLog.objects.create(
             provider=PROVIDER,
             endpoint=endpoint,
@@ -100,6 +131,7 @@ class OpenWeatherClient:
         obj.save()
 
         return data
+
 
 def fetchOpenSkyFlights(bbox=None, icao24=None):
     """
@@ -129,7 +161,7 @@ def fetchOpenSkyFlights(bbox=None, icao24=None):
         # Return empty structure if API fails
         return {'time': None, 'states': []}
 
- ###### API USAGE #######
+
 def _yyyymmdd_now():
     return timezone.now().strftime("%Y%m%d")
 

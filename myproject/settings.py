@@ -1,6 +1,6 @@
 """
 Django settings for myproject project.
-No .env file required - all settings configured directly here.
+All configuration from environment variables.
 """
 
 import os
@@ -10,22 +10,23 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Detect if we're running tests (both Django and pytest styles)
+# Detect if we're running tests
 TESTING = (
     "test" in sys.argv
     or "pytest" in sys.modules
     or os.environ.get("PYTEST_CURRENT_TEST")
 )
 
-# SECURITY WARNING: keep the secret key used in production secret!
-# For development, you can use this key. For production (Render), set as environment variable.
+# =============================================================================
+# SECURITY SETTINGS
+# =============================================================================
+
 SECRET_KEY = os.environ.get(
     "DJANGO_SECRET_KEY", 
-    "django-insecure-dev-only-key-8x7f@2k9#m4p&q1w*3e$5r^6t+8y(0u)9i-0o=p[l]"
+    "django-insecure-dev-only-key-change-in-production"
 )
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get("DJANGO_DEBUG", "True") == "True"
+DEBUG = os.environ.get("DJANGO_DEBUG", "False").lower() in ("true", "1", "yes")
 
 ALLOWED_HOSTS = [
     'out-of-the-sky.onrender.com',
@@ -33,8 +34,9 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
 ]
 
-
-# Application definition
+# =============================================================================
+# APPLICATION DEFINITION
+# =============================================================================
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -79,8 +81,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'myproject.wsgi.application'
 
+# =============================================================================
+# DATABASE
+# =============================================================================
 
-# Database
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -88,8 +92,10 @@ DATABASES = {
     }
 }
 
+# =============================================================================
+# PASSWORD VALIDATION
+# =============================================================================
 
-# Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -105,15 +111,19 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# =============================================================================
+# INTERNATIONALIZATION
+# =============================================================================
 
-# Internationalization
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
+# =============================================================================
+# STATIC FILES
+# =============================================================================
 
-# Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
@@ -122,49 +132,74 @@ STATICFILES_DIRS = [
     BASE_DIR / 'search' / 'static',
 ]
 
-# Use different storage backends for testing vs production
 if TESTING:
     STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 else:
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # =============================================================================
-# API CONFIGURATION - Environment Variables
+# API CONFIGURATION - ALL FROM ENVIRONMENT VARIABLES
 # =============================================================================
 
 # OpenWeather API Configuration
-# CRITICAL: Try multiple possible environment variable names
-OPENWEATHER_API_KEY = (
-    os.environ.get("OPENWEATHER_API_KEY") or 
-    os.environ.get("OPENWEATHERMAP_API_KEY") or
-    os.getenv("OPENWEATHER_API_KEY") or
-    os.getenv("OPENWEATHERMAP_API_KEY") or
-    None  # Changed from "" to None
+# The .env file has quotes around the key - strip them
+OPENWEATHER_API_KEY = os.environ.get("OPENWEATHER_API_KEY", "").strip('"\'')
+
+# Validate that we have the key (unless testing)
+if not TESTING and not OPENWEATHER_API_KEY:
+    print("=" * 80)
+    print("⚠️  WARNING: OPENWEATHER_API_KEY is not set!")
+    print("=" * 80)
+    print("Available environment variables with 'WEATHER' or 'OPEN':")
+    for key in os.environ.keys():
+        if 'WEATHER' in key.upper() or 'OPEN' in key.upper():
+            value = os.environ[key]
+            # Show first 8 and last 4 characters for debugging
+            if len(value) > 12:
+                print(f"  {key}: {value[:8]}...{value[-4:]}")
+            else:
+                print(f"  {key}: (too short)")
+    print("=" * 80)
+
+# Weather API Settings
+WEATHER_UNITS = os.environ.get("WEATHER_UNITS", "imperial").strip('"\'')
+WEATHER_CACHE_TTL_SECONDS = int(os.environ.get("WEATHER_CACHE_TTL_SECONDS", "300"))
+
+# OpenAI API Configuration
+OPENAI_API_KEY = os.environ.get("OPEN_AI_KEY", "").strip('"\'')
+
+# API Usage Budgets
+BUDGET_OPENWEATHERMAP_PER_DAY = int(
+    os.environ.get("OPENWEATHER_DAILY_QUOTA", 
+                   os.environ.get("BUDGET_OPENWEATHERMAP_PER_DAY", "2000"))
+)
+BUDGET_AVIATIONWEATHER_PER_DAY = int(
+    os.environ.get("BUDGET_AVIATIONWEATHER_PER_DAY", "2000")
+)
+BUDGET_AVIATIONSTACK_PER_DAY = int(
+    os.environ.get("BUDGET_AVIATIONSTACK_PER_DAY", "1000")
+)
+BUDGET_OPENSKY_PER_DAY = int(
+    os.environ.get("BUDGET_OPENSKY_PER_DAY", "380")
 )
 
-# Debug: Print to logs to help diagnose
-print("=" * 50)
-print("🔍 ENVIRONMENT VARIABLE DEBUG:")
-print(f"  OPENWEATHER_API_KEY in environ: {'OPENWEATHER_API_KEY' in os.environ}")
-print(f"  OPENWEATHERMAP_API_KEY in environ: {'OPENWEATHERMAP_API_KEY' in os.environ}")
-print(f"  All env keys starting with 'OPEN': {[k for k in os.environ.keys() if k.startswith('OPEN')]}")
-print(f"  API Key configured: {bool(OPENWEATHER_API_KEY)}")
-print(f"  API Key length: {len(OPENWEATHER_API_KEY) if OPENWEATHER_API_KEY else 0}")
-if OPENWEATHER_API_KEY:
-    print(f"  API Key preview: {OPENWEATHER_API_KEY[:8]}...{OPENWEATHER_API_KEY[-4:]}")
-print("=" * 50)
+# =============================================================================
+# CONFIGURATION SUMMARY (for debugging)
+# =============================================================================
 
-# Weather units: 'imperial' (Fahrenheit), 'metric' (Celsius), or 'standard' (Kelvin)
-WEATHER_UNITS = os.environ.get("WEATHER_UNITS", "imperial")
-
-# OpenAI API Configuration (optional - for future AI enhancements)
-OPENAI_API_KEY = os.environ.get("OPEN_AI_KEY", "")
-
-# API Usage Budgets (optional - for tracking API call limits)
-BUDGET_OPENWEATHERMAP_PER_DAY = int(os.environ.get("BUDGET_OPENWEATHERMAP_PER_DAY", "900"))
-BUDGET_AVIATIONWEATHER_PER_DAY = int(os.environ.get("BUDGET_AVIATIONWEATHER_PER_DAY", "2000"))
-BUDGET_AVIATIONSTACK_PER_DAY = int(os.environ.get("BUDGET_AVIATIONSTACK_PER_DAY", "1000"))
-BUDGET_OPENSKY_PER_DAY = int(os.environ.get("BUDGET_OPENSKY_PER_DAY", "380"))
+if DEBUG and not TESTING:
+    print("\n" + "=" * 80)
+    print("🔧 CONFIGURATION SUMMARY")
+    print("=" * 80)
+    print(f"DEBUG: {DEBUG}")
+    print(f"OPENWEATHER_API_KEY configured: {'✓' if OPENWEATHER_API_KEY else '✗'}")
+    if OPENWEATHER_API_KEY:
+        print(f"  Key length: {len(OPENWEATHER_API_KEY)} characters")
+        print(f"  Key preview: {OPENWEATHER_API_KEY[:8]}...{OPENWEATHER_API_KEY[-4:]}")
+    print(f"WEATHER_UNITS: {WEATHER_UNITS}")
+    print(f"WEATHER_CACHE_TTL: {WEATHER_CACHE_TTL_SECONDS}s")
+    print(f"OPENAI_API_KEY configured: {'✓' if OPENAI_API_KEY else '✗'}")
+    print(f"Daily API Budget: {BUDGET_OPENWEATHERMAP_PER_DAY} calls")
+    print("=" * 80 + "\n")
