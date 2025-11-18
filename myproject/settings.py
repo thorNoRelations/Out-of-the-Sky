@@ -142,12 +142,20 @@ OPENWEATHER_API_KEY = (
     os.environ.get("OPENWEATHERMAP_API_KEY") or
     os.getenv("OPENWEATHER_API_KEY") or
     os.getenv("OPENWEATHERMAP_API_KEY") or
-    ""
+    None  # Changed from "" to None
 )
 
-# Debug: Print to logs (remove after testing)
-print(f"🔑 OPENWEATHER_API_KEY configured: {bool(OPENWEATHER_API_KEY)}")
-print(f"🔑 Key length: {len(OPENWEATHER_API_KEY) if OPENWEATHER_API_KEY else 0}")
+# Debug: Print to logs to help diagnose
+print("=" * 50)
+print("🔍 ENVIRONMENT VARIABLE DEBUG:")
+print(f"  OPENWEATHER_API_KEY in environ: {'OPENWEATHER_API_KEY' in os.environ}")
+print(f"  OPENWEATHERMAP_API_KEY in environ: {'OPENWEATHERMAP_API_KEY' in os.environ}")
+print(f"  All env keys starting with 'OPEN': {[k for k in os.environ.keys() if k.startswith('OPEN')]}")
+print(f"  API Key configured: {bool(OPENWEATHER_API_KEY)}")
+print(f"  API Key length: {len(OPENWEATHER_API_KEY) if OPENWEATHER_API_KEY else 0}")
+if OPENWEATHER_API_KEY:
+    print(f"  API Key preview: {OPENWEATHER_API_KEY[:8]}...{OPENWEATHER_API_KEY[-4:]}")
+print("=" * 50)
 
 # Weather units: 'imperial' (Fahrenheit), 'metric' (Celsius), or 'standard' (Kelvin)
 WEATHER_UNITS = os.environ.get("WEATHER_UNITS", "imperial")
