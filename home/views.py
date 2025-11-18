@@ -14,6 +14,7 @@ import json
 
 
 def index(request):
+    first_flight = Flight.objects.first()
     """
     View function for the landing page.
     Renders the main index.html template.
@@ -21,6 +22,7 @@ def index(request):
     context = {
         'project_name': 'TaskFlow Pro',
         'tagline': 'Streamline Your Workflow, Amplify Your Productivity',
+        'first_flight': first_flight, 
     }
     return render(request, 'home/index.html', context)
 
@@ -261,3 +263,16 @@ def get_flight_details(request, icao24):
             'success': False,
             'error': str(e)
         }, status=500)
+    
+def dashboard(request):
+    """Dashboard view that shows all flights or a message if none exist"""
+    flights = Flight.objects.all()
+    
+    context = {
+        'flights': flights,
+        'total_flights': flights.count(),
+        'on_time_count': flights.filter(estimated_departure__isnull=True).count(),
+        'delayed_count': flights.exclude(estimated_departure__isnull=True).count(),
+        'upcoming_count': flights.filter(scheduled_departure__gte=timezone.now()).count(),
+    }
+    return render(request, 'home/dashboard.html', context)
