@@ -1,5 +1,6 @@
 import os
 from django.http import JsonResponse
+from django.conf import settings
 from django.db.models import Sum
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils import timezone
@@ -276,3 +277,37 @@ def dashboard(request):
         'upcoming_count': flights.filter(scheduled_departure__gte=timezone.now()).count(),
     }
     return render(request, 'home/dashboard.html', context)
+
+
+
+from django.http import JsonResponse
+from django.conf import settings
+
+def debug_config(request):
+    """Debug endpoint to check configuration - REMOVE IN PRODUCTION"""
+    
+    # Check Django settings
+    has_setting = hasattr(settings, 'OPENWEATHER_API_KEY')
+    setting_value = getattr(settings, 'OPENWEATHER_API_KEY', None) if has_setting else None
+    
+    # Check environment directly
+    env_keys_weather = [k for k in os.environ.keys() if 'WEATHER' in k.upper()]
+    env_keys_open = [k for k in os.environ.keys() if k.startswith('OPEN')]
+    
+    debug_info = {
+        'django_settings': {
+            'has_OPENWEATHER_API_KEY': has_setting,
+            'value_exists': bool(setting_value),
+            'value_length': len(setting_value) if setting_value else 0,
+        },
+        'environment_direct': {
+            'OPENWEATHER_API_KEY_exists': 'OPENWEATHER_API_KEY' in os.environ,
+            'OPENWEATHERMAP_API_KEY_exists': 'OPENWEATHERMAP_API_KEY' in os.environ,
+            'keys_with_WEATHER': env_keys_weather,
+            'keys_starting_OPEN': env_keys_open,
+        },
+        'all_env_keys_count': len(os.environ.keys()),
+        'render_env_set': bool(os.environ.get('RENDER')),
+    }
+    
+    return JsonResponse(debug_info, json_dumps_params={'indent': 2})
