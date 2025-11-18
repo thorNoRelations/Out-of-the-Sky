@@ -132,25 +132,28 @@ else:
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # =============================================================================
-# API CONFIGURATION - Add your API keys here
+# API CONFIGURATION - Environment Variables
 # =============================================================================
 
 # OpenWeather API Configuration
-# Get your free API key at: https://openweathermap.org/api
-OPENWEATHER_API_KEY = os.environ.get(
-    "OPENWEATHER_API_KEY", 
-    ""  # <-- PUT YOUR OPENWEATHER API KEY HERE between the quotes
+# CRITICAL: Try multiple possible environment variable names
+OPENWEATHER_API_KEY = (
+    os.environ.get("OPENWEATHER_API_KEY") or 
+    os.environ.get("OPENWEATHERMAP_API_KEY") or
+    os.getenv("OPENWEATHER_API_KEY") or
+    os.getenv("OPENWEATHERMAP_API_KEY") or
+    ""
 )
+
+# Debug: Print to logs (remove after testing)
+print(f"🔑 OPENWEATHER_API_KEY configured: {bool(OPENWEATHER_API_KEY)}")
+print(f"🔑 Key length: {len(OPENWEATHER_API_KEY) if OPENWEATHER_API_KEY else 0}")
 
 # Weather units: 'imperial' (Fahrenheit), 'metric' (Celsius), or 'standard' (Kelvin)
 WEATHER_UNITS = os.environ.get("WEATHER_UNITS", "imperial")
 
 # OpenAI API Configuration (optional - for future AI enhancements)
-# Get your API key at: https://platform.openai.com/api-keys
-OPENAI_API_KEY = os.environ.get(
-    "OPEN_AI_KEY",
-    ""  # <-- PUT YOUR OPENAI API KEY HERE if you have one (optional)
-)
+OPENAI_API_KEY = os.environ.get("OPEN_AI_KEY", "")
 
 # API Usage Budgets (optional - for tracking API call limits)
 BUDGET_OPENWEATHERMAP_PER_DAY = int(os.environ.get("BUDGET_OPENWEATHERMAP_PER_DAY", "900"))
