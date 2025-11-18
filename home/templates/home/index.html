@@ -15,7 +15,7 @@
     <nav class="navbar">
         <div class="container">
             <div class="nav-brand">
-                <a href="{% url 'home:index' %}">
+                <a href="{% url 'home:index' %}" class="btn btn-secondary-large">Home</a>
                     <h2>✈️ Out of the Sky</h2>
                 </a>
             </div>
@@ -25,8 +25,13 @@
                 <li><a href="#insights">Insights</a></li>
                 <li><a href="{% url 'home:weather_insights' %}">Weather</a></li>
                 <li><a href="#team">Team</a></li>
-                <li><a href="{% url 'home:flight_detail' 1 %}">Dashboard</a></li>
+                {% if first_flight %}
+                    <li><a href="{% url 'home:flight_detail' first_flight.id %}">Dashboard</a></li>
+                {% else %}
+                    <li><a href="{% url 'home:index' %}">Home</a></li>
+                {% endif %}
                 <li><a href="{% url 'search:search' %}" class="btn-primary">Search Flights</a></li>
+                <li><a href="{% url 'search:interactive_map' %}">Live Map</a></li>
             </ul>
         </div>
     </nav>
@@ -44,7 +49,11 @@
                 </p>
                 <div class="hero-buttons">
                     <a href="{% url 'search:search' %}" class="btn btn-primary-large">Start Tracking Flights</a>
-                    <a href="{% url 'home:flight_detail' 1 %}" class="btn btn-secondary-large">Flight Dashboard</a>
+                    {% if first_flight %}
+                        <a href="{% url 'home:flight_detail' first_flight.id %}" class="btn btn-secondary-large">Flight Dashboard</a>
+                    {% else %}
+                        <a href="{% url 'search:search' %}" class="btn btn-secondary-large">Search Flights</a>
+                    {% endif %}
                 </div>
             </div>
         </div>
