@@ -43,6 +43,8 @@ ALLOWED_HOSTS = [
     'out-of-the-sky.onrender.com',
     'localhost',
     '127.0.0.1',
+    'out-of-the-sky.xyz',
+    'www.out-of-the-sky.xyz',
 ]
 
 # =============================================================================
