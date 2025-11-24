@@ -60,7 +60,7 @@ jobs:
 
       - name: AI Code Review with OpenAI
         if: steps.changed-files.outputs.any_changed == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         env:
           OPEN_AI_KEY: ${{ secrets.OPEN_AI_KEY }}
         with:
@@ -216,7 +216,7 @@ jobs:
 
       - name: Comment coverage on PR
         if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
