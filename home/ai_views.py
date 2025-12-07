@@ -13,7 +13,7 @@ import json
 from backend.APICalls import OpenWeatherClient
 from backend.ai_models import DelayPredictor, RouteOptimizer
 from backend.openai_flight_service import get_flight_service
-from home.models import Flight
+from home.models import TrackedFlight
 
 
 @require_http_methods(["GET"])

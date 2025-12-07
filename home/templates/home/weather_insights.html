@@ -1,34 +1,25 @@
+{% extends 'base.html' %}
 {% load static %}
-{% if error %}
-  <div style="background:#ffebee;color:#b71c1c;padding:10px;margin:10px;border-radius:6px;">
-    ERROR: {{ error }}
-  </div>
-{% endif %}
 
-{% if weather %}
-  <div style="background:#e3f2fd;color:#0d47a1;padding:15px;margin:10px;border-radius:8px;">
-    <h2>{{ weather.city }}</h2>
-    <p><b>Temperature:</b> {{ weather.temp }}°C</p>
-    <p><b>Condition:</b> {{ weather.condition }}</p>
-  </div>
-{% endif %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weather & Delay Insights - Out of the Sky</title>
+{% block title %}Weather & Delay Insights - Out of the Sky{% endblock %}
+
+{% block extra_css %}
     <link rel="stylesheet" href="{% static 'styles.css' %}">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            background: var(--bg-light);
-        }
-
+        body { background: var(--bg-light); }
         .weather-hero {
             background: var(--gradient-primary);
             padding: 8rem 0 4rem;
-            margin-top: 60px;
+            margin-top: 0; /* Adjusted since we're in main block, but sticky navbar might overlay if margin is 0? Base.html main has no padding top by default? No, sticky navbar means content starts at top of viewport but is obscured. Base.html usually needs body { padding-top: navbar-height } or main { padding-top }. */
+            /* Actually, Bootstrap 5 sticky-top doesn't reserve space. 
+               However, base.html has navbar inside body. 
+               If I use block main, I replace the container. 
+               I should check if content is hidden behind navbar. 
+               Usually sticky-top requires subsequent content to have margin-top or body to have padding-top. 
+               Or I can just add margin-top to weather-hero. 
+               Let's assume standard behavior and add some top padding/margin if needed.
+            */
             position: relative;
             overflow: hidden;
         }
@@ -36,10 +27,7 @@
         .weather-hero::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            top: 0; left: 0; right: 0; bottom: 0;
             background: 
                 radial-gradient(circle at 20% 50%, rgba(6, 182, 212, 0.3) 0%, transparent 50%),
                 radial-gradient(circle at 80% 80%, rgba(59, 130, 246, 0.3) 0%, transparent 50%);
@@ -53,326 +41,159 @@
         }
 
         .weather-hero h1 {
-            font-size: 3rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
+            font-size: 3rem; font-weight: 700; margin-bottom: 1rem;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
         }
 
-        .weather-hero p {
-            font-size: 1.2rem;
-            opacity: 0.95;
-        }
+        .weather-hero p { font-size: 1.2rem; opacity: 0.95; }
 
-        .weather-content {
-            padding: 3rem 0;
-        }
+        .weather-content { padding: 3rem 0; }
 
         .search-box {
-            background: white;
-            padding: 2rem;
-            border-radius: 20px;
-            box-shadow: var(--shadow-lg);
-            margin-bottom: 2rem;
+            background: white; padding: 2rem; border-radius: 20px;
+            box-shadow: var(--shadow-lg); margin-bottom: 2rem;
         }
 
         .search-input {
-            width: 100%;
-            padding: 1rem 1.5rem;
-            border: 2px solid #e5e7eb;
-            border-radius: 50px;
-            font-size: 1rem;
-            font-family: 'Poppins', sans-serif;
+            width: 100%; padding: 1rem 1.5rem; border: 2px solid #e5e7eb;
+            border-radius: 50px; font-size: 1rem; font-family: 'Poppins', sans-serif;
             transition: all 0.3s ease;
         }
 
         .search-input:focus {
-            outline: none;
-            border-color: var(--primary-color);
+            outline: none; border-color: var(--primary-color);
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
 
         .stats-bar {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 3rem;
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem; margin-bottom: 3rem;
         }
 
         .stat-card {
-            background: white;
-            padding: 2rem;
-            border-radius: 15px;
-            text-align: center;
-            box-shadow: var(--shadow-md);
-            transition: all 0.3s ease;
+            background: white; padding: 2rem; border-radius: 15px;
+            text-align: center; box-shadow: var(--shadow-md); transition: all 0.3s ease;
         }
 
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-xl);
-        }
+        .stat-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-xl); }
 
         .stat-number {
-            font-size: 2.5rem;
-            font-weight: 700;
+            font-size: 2.5rem; font-weight: 700;
             background: var(--gradient-primary);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 0.5rem;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text; margin-bottom: 0.5rem;
         }
 
-        .stat-label {
-            font-size: 1rem;
-            color: var(--text-light);
-            font-weight: 500;
-        }
+        .stat-label { font-size: 1rem; color: var(--text-light); font-weight: 500; }
 
         .weather-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 2rem;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 2rem;
         }
 
         .weather-card {
-            background: white;
-            border-radius: 20px;
-            padding: 2rem;
-            box-shadow: var(--shadow-md);
-            transition: all 0.3s ease;
+            background: white; border-radius: 20px; padding: 2rem;
+            box-shadow: var(--shadow-md); transition: all 0.3s ease;
         }
 
-        .weather-card:hover {
-            transform: translateY(-8px);
-            box-shadow: var(--shadow-xl);
-        }
+        .weather-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-xl); }
 
         .airport-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 2px solid var(--bg-light);
+            display: flex; justify-content: space-between; align-items: flex-start;
+            margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid var(--bg-light);
         }
 
         .airport-code {
-            font-size: 2rem;
-            font-weight: 700;
+            font-size: 2rem; font-weight: 700;
             background: var(--gradient-primary);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             background-clip: text;
         }
 
-        .airport-name {
-            font-size: 0.9rem;
-            color: var(--text-light);
-            margin-top: 0.25rem;
-        }
+        .airport-name { font-size: 0.9rem; color: var(--text-light); margin-top: 0.25rem; }
 
         .weather-main {
-            display: flex;
-            align-items: center;
-            gap: 2rem;
-            padding: 1.5rem;
+            display: flex; align-items: center; gap: 2rem; padding: 1.5rem;
             background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-            border-radius: 15px;
-            margin-bottom: 1.5rem;
+            border-radius: 15px; margin-bottom: 1.5rem;
         }
 
-        .weather-icon-large {
-            font-size: 4rem;
-            flex-shrink: 0;
-        }
+        .weather-icon-large { font-size: 4rem; flex-shrink: 0; }
+        .weather-info { flex: 1; }
 
-        .weather-info {
-            flex: 1;
-        }
-
-        .temp-display {
-            font-size: 3rem;
-            font-weight: 700;
-            color: var(--text-dark);
-            margin-bottom: 0.25rem;
-        }
-
-        .condition-display {
-            font-size: 1.1rem;
-            color: var(--text-light);
-            font-weight: 500;
-        }
+        .temp-display { font-size: 3rem; font-weight: 700; color: var(--text-dark); margin-bottom: 0.25rem; }
+        .condition-display { font-size: 1.1rem; color: var(--text-light); font-weight: 500; }
 
         .weather-details {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1rem;
-            margin-bottom: 1.5rem;
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1.5rem;
         }
 
         .detail-box {
-            padding: 1rem;
-            background: var(--bg-light);
-            border-radius: 12px;
-            text-align: center;
-            transition: all 0.3s ease;
+            padding: 1rem; background: var(--bg-light); border-radius: 12px;
+            text-align: center; transition: all 0.3s ease;
         }
 
-        .detail-box:hover {
-            background: #e0f2fe;
-        }
+        .detail-box:hover { background: #e0f2fe; }
 
-        .detail-label {
-            font-size: 0.85rem;
-            color: var(--text-light);
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-        }
-
-        .detail-value {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: var(--text-dark);
-        }
+        .detail-label { font-size: 0.85rem; color: var(--text-light); margin-bottom: 0.5rem; font-weight: 500; }
+        .detail-value { font-size: 1.2rem; font-weight: 700; color: var(--text-dark); }
 
         .delay-risk-box {
-            padding: 1.5rem;
-            border-radius: 15px;
-            text-align: center;
-            margin-bottom: 1rem;
+            padding: 1.5rem; border-radius: 15px; text-align: center; margin-bottom: 1rem;
         }
 
-        .risk-low {
-            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-            color: #065f46;
-        }
-
-        .risk-moderate {
-            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-            color: #92400e;
-        }
-
-        .risk-high {
-            background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%);
-            color: #9a3412;
-        }
-
-        .risk-severe {
-            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-            color: #991b1b;
-        }
+        .risk-low { background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); color: #065f46; }
+        .risk-moderate { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); color: #92400e; }
+        .risk-high { background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%); color: #9a3412; }
+        .risk-severe { background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); color: #991b1b; }
 
         .risk-title {
-            font-size: 0.9rem;
-            font-weight: 600;
-            margin-bottom: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            font-size: 0.9rem; font-weight: 600; margin-bottom: 0.75rem;
+            text-transform: uppercase; letter-spacing: 1px;
         }
 
-        .risk-level {
-            font-size: 1.4rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-        }
-
-        .risk-details {
-            font-size: 0.95rem;
-            opacity: 0.9;
-        }
+        .risk-level { font-size: 1.4rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .risk-details { font-size: 0.95rem; opacity: 0.9; }
 
         .forecast-description {
-            padding: 1rem;
-            background: var(--bg-light);
-            border-left: 4px solid var(--primary-color);
-            border-radius: 8px;
-            font-size: 0.95rem;
-            color: var(--text-dark);
-            line-height: 1.6;
-            margin-bottom: 1rem;
+            padding: 1rem; background: var(--bg-light);
+            border-left: 4px solid var(--primary-color); border-radius: 8px;
+            font-size: 0.95rem; color: var(--text-dark); line-height: 1.6; margin-bottom: 1rem;
         }
 
-        .last-updated {
-            font-size: 0.8rem;
-            color: var(--text-light);
-            text-align: center;
-        }
+        .last-updated { font-size: 0.8rem; color: var(--text-light); text-align: center; }
 
         .empty-state {
-            text-align: center;
-            padding: 4rem 2rem;
-            background: white;
-            border-radius: 20px;
-            box-shadow: var(--shadow-md);
+            text-align: center; padding: 4rem 2rem; background: white;
+            border-radius: 20px; box-shadow: var(--shadow-md);
         }
 
-        .empty-icon {
-            font-size: 5rem;
-            margin-bottom: 1rem;
-            opacity: 0.3;
-        }
-
-        .empty-state h2 {
-            font-size: 2rem;
-            color: var(--text-dark);
-            margin-bottom: 1rem;
-        }
-
-        .empty-state p {
-            color: var(--text-light);
-            font-size: 1.1rem;
-        }
+        .empty-icon { font-size: 5rem; margin-bottom: 1rem; opacity: 0.3; }
+        .empty-state h2 { font-size: 2rem; color: var(--text-dark); margin-bottom: 1rem; }
+        .empty-state p { color: var(--text-light); font-size: 1.1rem; }
 
         @media (max-width: 768px) {
-            .weather-hero {
-                padding: 6rem 0 3rem;
-            }
-
-            .weather-hero h1 {
-                font-size: 2rem;
-            }
-
-            .weather-hero p {
-                font-size: 1rem;
-            }
-
-            .weather-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .weather-main {
-                flex-direction: column;
-                text-align: center;
-            }
-
-            .weather-details {
-                grid-template-columns: 1fr;
-            }
-
-            .stats-bar {
-                grid-template-columns: 1fr;
-            }
+            .weather-hero { padding: 6rem 0 3rem; }
+            .weather-hero h1 { font-size: 2rem; }
+            .weather-hero p { font-size: 1rem; }
+            .weather-grid { grid-template-columns: 1fr; }
+            .weather-main { flex-direction: column; text-align: center; }
+            .weather-details { grid-template-columns: 1fr; }
+            .stats-bar { grid-template-columns: 1fr; }
         }
     </style>
-</head>
-<body>
-    <!-- Navigation -->
-    <nav class="navbar">
-        <div class="container">
-            <div class="nav-brand">
-                <a href="{% url 'home:index' %}">
-                    <h2>✈️ Out of the Sky</h2>
-                </a>
-            </div>
-            <ul class="nav-menu">
-                <li><a href="{% url 'home:index' %}">Home</a></li>  <!-- CHANGE THIS LINE -->
-                <li><a href="{% url 'search:search' %}">Search</a></li>
-                <li><a href="{% url 'home:weather_insights' %}">Weather</a></li>
-                <li><a href="{% url 'home:flight_detail' 1 %}" class="btn-primary">Dashboard</a></li>
-            </ul>
+{% endblock %}
+
+{% block main %}
+    {% if messages %}
+        <div class="container mt-4">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
         </div>
-    </nav>
+    {% endif %}
 
     <!-- Hero Section -->
     <section class="weather-hero">
@@ -397,6 +218,20 @@
                     >
                 </form>
             </div>
+
+            {% if error %}
+            <div class="alert alert-danger mb-4">
+                ERROR: {{ error }}
+            </div>
+            {% endif %}
+
+            {% if weather %}
+            <div class="alert alert-info mb-4">
+                <h2>{{ weather.city }}</h2>
+                <p><b>Temperature:</b> {{ weather.temp }}°C</p>
+                <p><b>Condition:</b> {{ weather.condition }}</p>
+            </div>
+            {% endif %}
 
             <!-- Stats Bar -->
             <div class="stats-bar">
@@ -491,43 +326,13 @@
             {% endif %}
         </div>
     </section>
+{% endblock %}
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h3>Out of the Sky</h3>
-                    <p>Real-time flight tracking and aviation intelligence for travelers and enthusiasts worldwide.</p>
-                </div>
-                <div class="footer-section">
-                    <h4>Features</h4>
-                    <ul>
-                        <li><a href="{% url 'search:search' %}">Search Flights</a></li>
-                        <li><a href="{% url 'home:weather_insights' %}">Weather Insights</a></li>
-                        <li><a href="{% url 'home:flight_detail' 1 %}">Dashboard</a></li>
-                    </ul>
-                </div>
-                <div class="footer-section">
-                    <h4>Connect</h4>
-                    <ul>
-                        <li><a href="#">Contact Us</a></li>
-                        <li><a href="#">GitHub</a></li>
-                        <li><a href="#">Support</a></li>
-                    </ul>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2024 Out of the Sky. Created by Ethan Briggs, Alex Lang, Enzo Knapp, and Mason Sowanick.</p>
-            </div>
-        </div>
-    </footer>
-
+{% block extra_js %}
     <script>
         // Auto-refresh every 5 minutes for updated weather
         setTimeout(function() {
             location.reload();
         }, 300000);
     </script>
-</body>
-</html>
+{% endblock %}

@@ -1,20 +1,19 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Flight Map - Out of the Sky</title>
+
+{% block title %}Interactive Flight Map - Out of the Sky{% endblock %}
+
+{% block extra_css %}
     <link rel="stylesheet" href="{% static 'styles.css' %}">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     
     <style>
         body { margin: 0; padding: 0; overflow: hidden; }
-        #map { position: fixed; top: 60px; left: 0; right: 0; bottom: 0; z-index: 1; }
+        /* Adjusted for Bootstrap Navbar (~56px) */
+        #map { position: fixed; top: 56px; left: 0; right: 0; bottom: 0; z-index: 1; }
         
         .map-controls {
-            position: fixed; top: 80px; right: 20px; z-index: 1000;
+            position: fixed; top: 76px; right: 20px; z-index: 1000;
             background: white; border-radius: 15px; padding: 1.5rem;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); max-width: 300px;
         }
@@ -60,7 +59,7 @@
         .detail-value { font-size: 1.2rem; font-weight: 700; color: var(--text-dark); }
         
         .loading-overlay {
-            position: fixed; top: 60px; left: 0; right: 0; bottom: 0;
+            position: fixed; top: 56px; left: 0; right: 0; bottom: 0;
             background: rgba(255, 255, 255, 0.9); display: flex; flex-direction: column;
             align-items: center; justify-content: center; z-index: 2000;
         }
@@ -90,22 +89,9 @@
             .detail-grid { grid-template-columns: 1fr; }
         }
     </style>
-</head>
-<body>
-    <nav class="navbar">
-        <div class="container">
-            <div class="nav-brand">
-                <a href="{% url 'home:index' %}"><h2>✈️ Out of the Sky</h2></a>
-            </div>
-            <ul class="nav-menu">
-                <li><a href="{% url 'home:index' %}">Home</a></li>
-                <li><a href="{% url 'search:search' %}">Search</a></li>
-                <li><a href="{% url 'search:interactive_map' %}">Live Map</a></li>
-                <li><a href="{% url 'home:flight_detail' 1 %}" class="btn-primary">Dashboard</a></li>
-            </ul>
-        </div>
-    </nav>
+{% endblock %}
 
+{% block main %}
     <div id="map"></div>
 
     <div class="map-controls">
@@ -130,7 +116,9 @@
         <div class="spinner"></div>
         <div class="loading-text">Loading flight data...</div>
     </div>
+{% endblock %}
 
+{% block extra_js %}
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         const map = L.map('map').setView([{{ map_center_lat }}, {{ map_center_lon }}], {{ default_zoom }});
@@ -154,51 +142,40 @@
         }
 
         async function loadFlights() {
-    const loadingOverlay = document.getElementById('loadingOverlay');
-    const refreshBtn = document.getElementById('refreshBtn');
-    
-    try {
-        refreshBtn.disabled = true;
-        
-        const bounds = map.getBounds();
-        const boundsStr = `${bounds.getSouth()},${bounds.getWest()},${bounds.getNorth()},${bounds.getEast()}`;
-        
-        const response = await fetch(`{% url 'search:get_live_flights' %}?bounds=${boundsStr}`);
-        const data = await response.json();
-
-        if (data.success) {
-            // CRITICAL: Clear ALL old markers first
-            flightMarkers.forEach(marker => {
-                map.removeLayer(marker);
-            });
-            flightMarkers.clear();
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            const refreshBtn = document.getElementById('refreshBtn');
             
-            // Now add the new flights (max 200)
-            updateFlightMarkers(data.flights);
-            
-            // Update counter with EXACT count from API
-            updateFlightCounter(data.count);
-            updateLastUpdateTime();
-        } else {
-            console.error('Failed to load flights:', data.error);
-            alert('Failed to load flight data. Please try again.');
-        }
-    } catch (error) {
-        console.error('Error loading flights:', error);
-        alert('Error loading flight data. Please check your connection.');
-    } finally {
-        loadingOverlay.style.display = 'none';
-        refreshBtn.disabled = false;
-    }
-}
+            try {
+                refreshBtn.disabled = true;
+                
+                const bounds = map.getBounds();
+                const boundsStr = `${bounds.getSouth()},${bounds.getWest()},${bounds.getNorth()},${bounds.getEast()}`;
+                
+                const response = await fetch(`{% url 'search:get_live_flights' %}?bounds=${boundsStr}`);
+                const data = await response.json();
 
-        function clearAllMarkers() {
-            // Remove all markers from map
-            flightMarkers.forEach(marker => {
-                map.removeLayer(marker);
-            });
-            // Clear the markers map
-            flightMarkers.clear();
+                if (data.success) {
+                    // Clear old markers
+                    flightMarkers.forEach(marker => {
+                        map.removeLayer(marker);
+                    });
+                    flightMarkers.clear();
+                    
+                    // Add new flights
+                    updateFlightMarkers(data.flights);
+                    
+                    // Update counter
+                    updateFlightCounter(data.count);
+                    updateLastUpdateTime();
+                } else {
+                    console.error('Failed to load flights:', data.error);
+                }
+            } catch (error) {
+                console.error('Error loading flights:', error);
+            } finally {
+                loadingOverlay.style.display = 'none';
+                refreshBtn.disabled = false;
+            }
         }
 
         function updateFlightMarkers(flights) {
@@ -300,5 +277,4 @@
         // Initial load
         loadFlights();
     </script>
-</body>
-</html>
+{% endblock %}
