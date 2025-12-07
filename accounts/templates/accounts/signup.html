@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Sign Up - Out of the Sky{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card border-0 shadow-sm mt-5">
+            <div class="card-body p-4">
+                <h2 class="text-center mb-4 text-primary fw-bold">Sign Up</h2>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    {% for field in form %}
+                        <div class="mb-3">
+                            <label for="{{ field.id_for_label }}" class="form-label fw-semibold">{{ field.label }}</label>
+                            {{ field }} 
+                            <!-- We might need to add class="form-control" to the field widget in forms.py or using filters, but relying on default rendering for now or wrapping -->
+                            {% if field.help_text %}
+                                <div class="form-text">{{ field.help_text }}</div>
+                            {% endif %}
+                            {% for error in field.errors %}
+                                <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                    
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg">Create Account</button>
+                    </div>
+                </form>
+                
+                <div class="text-center mt-4">
+                    <p class="mb-0">Already have an account? <a href="{% url 'login' %}" class="text-decoration-none fw-semibold">Log in</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Simple script to add form-control class to inputs if they don't have it (since we render {{ field }})
+    document.querySelectorAll('input').forEach(input => {
+        if (!input.classList.contains('form-control') && input.type !== 'checkbox' && input.type !== 'radio') {
+            input.classList.add('form-control');
+        }
+    });
+</script>
+{% endblock %}

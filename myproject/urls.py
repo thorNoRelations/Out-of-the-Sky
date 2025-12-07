@@ -6,6 +6,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('accounts/', include('accounts.urls')),
     path('', include('home.urls')),
     path('search/', include('search.urls')),  # ADDED: Search app URLs
     path('api/', include('myproject.api_urls')),

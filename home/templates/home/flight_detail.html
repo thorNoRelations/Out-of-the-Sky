@@ -1,88 +1,78 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flight {{ flight.flight_number }} - Out of the Sky</title>
-    <link rel="stylesheet" href="{% static 'styles.css' %}">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <style>
-        .page { max-width: 1200px; margin: 0 auto; padding: 6rem 2rem 2rem; }
-        .back-btn { display: inline-block; color: var(--text-light); text-decoration: none; margin-bottom: 1.5rem; }
-        .back-btn:hover { color: var(--primary-color); }
-        
-        .detail-card { background: white; border-radius: 20px; padding: 2rem; box-shadow: var(--shadow-lg); margin-bottom: 2rem; }
-        .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 1.5rem; border-bottom: 2px solid #f3f4f6; margin-bottom: 1.5rem; }
-        .title { font-size: 2rem; color: var(--primary-color); margin: 0; }
-        .route-text { color: var(--text-light); font-size: 1.1rem; }
-        .status { padding: 0.5rem 1.5rem; border-radius: 50px; font-weight: 600; }
-        .status-on-time { background: #d1fae5; color: #065f46; }
-        .status-delayed { background: #fee2e2; color: #991b1b; }
-        
-        .route { display: grid; grid-template-columns: 1fr auto 1fr; gap: 2rem; align-items: center; padding: 2rem; background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%); border-radius: 15px; margin-bottom: 1.5rem; }
-        .airport { text-align: center; }
-        .code { font-size: 2.5rem; font-weight: 700; color: var(--text-dark); }
-        .city { color: var(--text-light); margin: 0.5rem 0; }
-        .plane { font-size: 2.5rem; color: var(--primary-color); animation: float 3s ease-in-out infinite; }
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-        
-        .times { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
-        .time-card { border: 2px solid #e5e7eb; border-radius: 12px; padding: 1.5rem; }
-        .time-card:hover { border-color: var(--primary-color); }
-        .time-header { font-size: 1.2rem; font-weight: 700; margin-bottom: 1rem; }
-        .time-row { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #f3f4f6; }
-        .time-row:last-child { border-bottom: none; }
-        .time-value { color: var(--primary-color); font-weight: 600; }
-        
-        .info { background: #f8fafc; padding: 1.5rem; border-radius: 12px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
-        .info-item { display: flex; flex-direction: column; gap: 0.25rem; }
-        .info-label { font-size: 0.85rem; color: var(--text-light); }
-        .info-value { font-weight: 600; color: var(--text-dark); }
-        
-        .dashboard { margin-top: 3rem; }
-        .dashboard h2 { font-size: 1.8rem; margin-bottom: 1.5rem; }
-        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
-        .stat { background: white; padding: 1.5rem; border-radius: 15px; box-shadow: var(--shadow-md); display: flex; align-items: center; gap: 1rem; transition: transform 0.3s; }
-        .stat:hover { transform: translateY(-5px); }
-        .stat-icon { width: 50px; height: 50px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
-        .icon-blue { background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); }
-        .icon-green { background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); }
-        .icon-yellow { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); }
-        .icon-red { background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); }
-        .stat-num { font-size: 1.8rem; font-weight: 700; margin: 0; }
-        .stat-label { color: var(--text-light); font-size: 0.9rem; }
-        
-        .flights { display: grid; gap: 1rem; }
-        .flight-card { background: white; border: 2px solid #f3f4f6; border-radius: 12px; padding: 1.5rem; text-decoration: none; display: block; transition: all 0.3s; }
-        .flight-card:hover { border-color: var(--primary-color); transform: translateY(-3px); box-shadow: var(--shadow-md); }
-        .flight-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-        .flight-num { font-size: 1.2rem; font-weight: 700; color: var(--primary-color); }
-        .flight-route { display: flex; justify-content: space-between; align-items: center; }
-        .flight-airport { text-align: center; flex: 1; }
-        .flight-code { font-size: 1.3rem; font-weight: 700; color: var(--text-dark); }
-        .flight-city { font-size: 0.85rem; color: var(--text-light); }
-        .arrow { color: var(--primary-color); font-size: 1.3rem; }
-        
-        @media (max-width: 768px) {
-            .header { flex-direction: column; align-items: flex-start; gap: 1rem; }
-            .route { grid-template-columns: 1fr; }
-            .times { grid-template-columns: 1fr; }
-            .stats { grid-template-columns: 1fr; }
-        }
-    </style>
-</head>
-<body>
-    <nav class="navbar">
-        <div class="container">
-            <div class="nav-brand"><a href="{% url 'home:index' %}"><h2>✈️ Out of the Sky</h2></a></div>
-            <ul class="nav-menu">
-                <li><a href="{% url 'home:index' %}">Home</a></li>
-                <li><a href="{% url 'search:search' %}">Search</a></li>
-            </ul>
-        </div>
-    </nav>
 
+{% block title %}Flight {{ flight.flight_number }} - Out of the Sky{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'styles.css' %}">
+<style>
+    /* Scoped styles overrides if necessary, but reusing existing ones */
+    .page { max-width: 1200px; margin: 0 auto; padding: 2rem 0; }
+    .back-btn { display: inline-block; color: var(--text-light); text-decoration: none; margin-bottom: 1.5rem; }
+    .back-btn:hover { color: var(--primary-color); }
+    
+    .detail-card { background: white; border-radius: 20px; padding: 2rem; box-shadow: var(--shadow-lg); margin-bottom: 2rem; }
+    .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 1.5rem; border-bottom: 2px solid #f3f4f6; margin-bottom: 1.5rem; }
+    .title { font-size: 2rem; color: var(--primary-color); margin: 0; }
+    .route-text { color: var(--text-light); font-size: 1.1rem; }
+    .status { padding: 0.5rem 1.5rem; border-radius: 50px; font-weight: 600; }
+    .status-on-time { background: #d1fae5; color: #065f46; }
+    .status-delayed { background: #fee2e2; color: #991b1b; }
+    
+    .route { display: grid; grid-template-columns: 1fr auto 1fr; gap: 2rem; align-items: center; padding: 2rem; background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%); border-radius: 15px; margin-bottom: 1.5rem; }
+    .airport { text-align: center; }
+    .code { font-size: 2.5rem; font-weight: 700; color: var(--text-dark); }
+    .city { color: var(--text-light); margin: 0.5rem 0; }
+    .plane { font-size: 2.5rem; color: var(--primary-color); animation: float 3s ease-in-out infinite; }
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+    
+    .times { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+    .time-card { border: 2px solid #e5e7eb; border-radius: 12px; padding: 1.5rem; }
+    .time-card:hover { border-color: var(--primary-color); }
+    .time-header { font-size: 1.2rem; font-weight: 700; margin-bottom: 1rem; }
+    .time-row { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #f3f4f6; }
+    .time-row:last-child { border-bottom: none; }
+    .time-value { color: var(--primary-color); font-weight: 600; }
+    
+    .info { background: #f8fafc; padding: 1.5rem; border-radius: 12px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+    .info-item { display: flex; flex-direction: column; gap: 0.25rem; }
+    .info-label { font-size: 0.85rem; color: var(--text-light); }
+    .info-value { font-weight: 600; color: var(--text-dark); }
+    
+    .dashboard { margin-top: 3rem; }
+    .dashboard h2 { font-size: 1.8rem; margin-bottom: 1.5rem; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+    .stat { background: white; padding: 1.5rem; border-radius: 15px; box-shadow: var(--shadow-md); display: flex; align-items: center; gap: 1rem; transition: transform 0.3s; }
+    .stat:hover { transform: translateY(-5px); }
+    .stat-icon { width: 50px; height: 50px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+    .icon-blue { background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); }
+    .icon-green { background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); }
+    .icon-yellow { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); }
+    .icon-red { background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); }
+    .stat-num { font-size: 1.8rem; font-weight: 700; margin: 0; }
+    .stat-label { color: var(--text-light); font-size: 0.9rem; }
+    
+    .flights { display: grid; gap: 1rem; }
+    .flight-card { background: white; border: 2px solid #f3f4f6; border-radius: 12px; padding: 1.5rem; text-decoration: none; display: block; transition: all 0.3s; }
+    .flight-card:hover { border-color: var(--primary-color); transform: translateY(-3px); box-shadow: var(--shadow-md); }
+    .flight-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .flight-num { font-size: 1.2rem; font-weight: 700; color: var(--primary-color); }
+    .flight-route { display: flex; justify-content: space-between; align-items: center; }
+    .flight-airport { text-align: center; flex: 1; }
+    .flight-code { font-size: 1.3rem; font-weight: 700; color: var(--text-dark); }
+    .flight-city { font-size: 0.85rem; color: var(--text-light); }
+    .arrow { color: var(--primary-color); font-size: 1.3rem; }
+    
+    @media (max-width: 768px) {
+        .header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+        .route { grid-template-columns: 1fr; }
+        .times { grid-template-columns: 1fr; }
+        .stats { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
     <div class="page">
         <a href="{% url 'home:index' %}" class="back-btn">← Back to Home</a>
 
@@ -95,6 +85,11 @@
                 <div class="status {% if flight.estimated_departure and flight.estimated_departure != flight.scheduled_departure %}status-delayed{% else %}status-on-time{% endif %}">
                     {% if flight.estimated_departure and flight.estimated_departure != flight.scheduled_departure %}Delayed{% else %}On Time{% endif %}
                 </div>
+            </div>
+
+            <!-- Risk Assessment Button -->
+            <div class="mb-4">
+                 <a href="{% url 'home:assess_delay_risk' flight.id %}" class="btn btn-warning">Assess Delay Risk</a>
             </div>
 
             <div class="route">
@@ -203,5 +198,4 @@
             {% endif %}
         </div>
     </div>
-</body>
-</html>
+{% endblock %}

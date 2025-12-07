@@ -61,7 +61,11 @@ INSTALLED_APPS = [
     'home',
     'search',
     'backend',
+    'accounts',
 ]
+
+LOGIN_REDIRECT_URL = 'profile'
+LOGOUT_REDIRECT_URL = 'home:index'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

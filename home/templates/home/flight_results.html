@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Flight Results - Out of the Sky{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="display-5 fw-bold text-primary">Flight Results</h1>
+        <p class="lead text-muted">Found {{ flights|length }} flights matching your criteria.</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    {% if flights %}
+        {% for flight in flights %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-0 shadow-sm hover-shadow transition-all">
+                    <div class="card-header bg-white border-bottom-0 pt-4 px-4 pb-0 d-flex justify-content-between align-items-center">
+                        <span class="badge bg-primary rounded-pill">Scheduled</span>
+                        <small class="text-muted fw-bold">{{ flight.flight_number }}</small>
+                    </div>
+                    <div class="card-body px-4 py-3">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <div class="text-center">
+                                <div class="h3 mb-0 text-dark">{{ flight.departing_city|slice:":3"|upper }}</div>
+                                <div class="small text-muted text-truncate" style="max-width: 100px;">{{ flight.departing_city }}</div>
+                            </div>
+                            <div class="flex-grow-1 mx-3 text-center position-relative">
+                                <div class="progress" style="height: 2px;">
+                                    <div class="progress-bar bg-primary" role="progressbar" style="width: 100%"></div>
+                                </div>
+                                <span class="position-absolute top-50 start-50 translate-middle bg-white px-2">✈️</span>
+                            </div>
+                            <div class="text-center">
+                                <div class="h3 mb-0 text-dark">{{ flight.arriving_city|slice:":3"|upper }}</div>
+                                <div class="small text-muted text-truncate" style="max-width: 100px;">{{ flight.arriving_city }}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="row text-center mt-3">
+                            <div class="col-6">
+                                <div class="small text-muted mb-1">Departure</div>
+                                <div class="fw-semibold">{{ flight.scheduled_departure|date:"M d, g:i A" }}</div>
+                            </div>
+                            <div class="col-6">
+                                <div class="small text-muted mb-1">Arrival</div>
+                                <div class="fw-semibold">{{ flight.scheduled_arrival|date:"M d, g:i A" }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-light border-0 p-3">
+                        <div class="d-grid gap-2 d-flex justify-content-between">
+                            <a href="{% url 'home:flight_tracker' flight.flight_number %}" class="btn btn-outline-primary w-50">
+                                Track Flight
+                            </a>
+                            <a href="{% url 'home:flight_detail' flight.id %}" class="btn btn-primary w-50 text-white">
+                                View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="col-12 text-center py-5">
+            <div class="display-1 mb-3">🔍</div>
+            <h3>No flights found</h3>
+            <p class="text-muted">Try adjusting your search criteria or checking back later.</p>
+            <a href="{% url 'search:search' %}" class="btn btn-primary mt-3">Start New Search</a>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+    .hover-shadow:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+    }
+    .transition-all {
+        transition: all 0.3s ease;
+    }
+</style>
+{% endblock %}

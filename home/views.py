@@ -1,13 +1,15 @@
 import os
+import requests
 from django.http import JsonResponse
 from django.conf import settings
 from django.db.models import Sum
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils import timezone
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
 from datetime import timezone as _tz, datetime
 from .models import ApiUsage
-from .models import Flight, AirportWeather
+from .models import TrackedFlight, AirportWeather
 from django.db.models import Q
 from django.views.decorators.http import require_http_methods
 from backend.APICalls import OpenWeatherClient, fetchOpenSkyFlights
@@ -15,7 +17,7 @@ import json
 
 
 def index(request):
-    first_flight = Flight.objects.first()
+    first_flight = TrackedFlight.objects.first()
     """
     View function for the landing page.
     Renders the main index.html template.
@@ -28,9 +30,9 @@ def index(request):
     return render(request, 'home/index.html', context)
 
 
-def flight_detail(request, flight_id):
-    flight = get_object_or_404(Flight, id=flight_id)
-    all_flights = Flight.objects.all()
+def flight_detail_view(request, flight_id):
+    flight = get_object_or_404(TrackedFlight, id=flight_id)
+    all_flights = TrackedFlight.objects.all()
     other_flights = all_flights.exclude(id=flight_id)[:5]
 
     on_time_count = all_flights.filter(estimated_departure__isnull=True).count()
@@ -46,6 +48,35 @@ def flight_detail(request, flight_id):
         'upcoming_count': upcoming_count,
     }
     return render(request, 'home/flight_detail.html', context)
+
+# Alias to maintain backward compatibility if other apps import it
+flight_detail = flight_detail_view
+
+@login_required
+def track_flight(request, flight_number):
+    """
+    View to track a flight for the logged-in user.
+    Creates a TrackedFlight instance if it doesn't exist for the user.
+    """
+    # Check if the flight is already tracked by this user
+    flight_exists = TrackedFlight.objects.filter(
+        user=request.user, 
+        flight_number=flight_number
+    ).exists()
+    
+    if not flight_exists:
+        # Create a new tracked flight record
+        # In a real app, you might fetch details from an API here
+        TrackedFlight.objects.create(
+            user=request.user,
+            flight_number=flight_number,
+            departing_city="Unknown", # Placeholder
+            arriving_city="Unknown",  # Placeholder
+            scheduled_departure=timezone.now(),
+            scheduled_arrival=timezone.now() + timezone.timedelta(hours=2)
+        )
+    
+    return redirect('profile')
 
 
 def weather_insights(request):
@@ -267,7 +298,7 @@ def get_flight_details(request, icao24):
     
 def dashboard(request):
     """Dashboard view that shows all flights or a message if none exist"""
-    flights = Flight.objects.all()
+    flights = TrackedFlight.objects.all()
     
     context = {
         'flights': flights,
@@ -311,3 +342,78 @@ def debug_config(request):
     }
     
     return JsonResponse(debug_info, json_dumps_params={'indent': 2})
+
+
+# Helper function for date formatting
+def format_iso8601(dt: datetime) -> str:
+    """
+    Formats a datetime object to ISO 8601 string 'YYYY-MM-DDTHH:MM:SSZ'.
+    """
+    # Ensure timezone awareness (default to UTC if naive)
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=_tz.utc)
+    
+    # Convert to UTC
+    dt_utc = dt.astimezone(_tz.utc)
+    
+    # Format: YYYY-MM-DDTHH:MM:SSZ
+    return dt_utc.strftime('%Y-%m-%dT%H:%M:%SZ')
+
+
+@require_http_methods(["GET", "POST"])
+def assess_delay_risk_view(request, flight_id):
+    """
+    Assess delay risk for a specific flight using an external AI API.
+    """
+    flight = get_object_or_404(TrackedFlight, id=flight_id)
+    
+    # API Configuration
+    api_url = "https://api.thirdparty.com/delay-risk"
+    api_key = getattr(settings, 'THIRD_PARTY_API_KEY', None)
+    
+    if not api_key:
+        return JsonResponse({
+            'error': 'Configuration Error',
+            'message': 'Third-party API key is missing.'
+        }, status=500)
+
+    # Construct Payload
+    # extracting first 3 chars as airport code based on template logic
+    payload = {
+        "departure_airport_code": flight.departing_city[:3].upper(),
+        "arrival_airport_code": flight.arriving_city[:3].upper(),
+        "scheduled_departure_time": format_iso8601(flight.scheduled_departure)
+    }
+    
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+
+    try:
+        response = requests.post(api_url, json=payload, headers=headers, timeout=10)
+        
+        # Check for successful response
+        if response.status_code == 200:
+            return JsonResponse(response.json())
+        else:
+            return JsonResponse({
+                'error': 'API Error',
+                'status_code': response.status_code,
+                'message': response.text
+            }, status=response.status_code)
+            
+    except requests.exceptions.RequestException as e:
+        return JsonResponse({
+            'error': 'Network Error',
+            'message': str(e)
+        }, status=503)
+
+@login_required
+def account_view(request):
+    """
+    View for the user account page.
+    Displays a list of tracked flights for the logged-in user.
+    """
+    flights = TrackedFlight.objects.filter(user=request.user)
+    return render(request, 'home/account_page.html', {'flights': flights})

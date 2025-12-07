@@ -3,7 +3,7 @@ from django.contrib import admin
 # Register your models here.
 from django.contrib import admin
 from .models import ApiUsage
-from .models import Flight
+from .models import TrackedFlight
 from backend.models import APIRequestLog, AirportWeather
 
 @admin.register(APIRequestLog)
@@ -25,8 +25,8 @@ class AirportWeatherAdmin(admin.ModelAdmin):
     list_filter = ("providerSource",)
 
 
-@admin.register(Flight)
-class FlightAdmin(admin.ModelAdmin):
+@admin.register(TrackedFlight)
+class TrackedFlightAdmin(admin.ModelAdmin):
     list_display = [
         'flight_number',
         'departing_city',

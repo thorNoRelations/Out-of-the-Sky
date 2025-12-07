@@ -2,6 +2,7 @@ from django.db import models
 # models.py
 from django.db import models
 from django.utils import timezone
+from django.contrib.auth.models import User
 
 
 class ApiUsage(models.Model):
@@ -22,7 +23,8 @@ class ApiUsage(models.Model):
 # Create your models here.
 
 # Flight model for flight information feature
-class Flight(models.Model):
+class TrackedFlight(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tracked_flights', null=True, blank=True)
     # Flight Number
     flight_number = models.CharField(
         max_length=25,
