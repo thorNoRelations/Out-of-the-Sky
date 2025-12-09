@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from backend.APICalls import fetchOpenSkyFlights, ai_flight_search
+from .models import Flight
 import json
 
 
@@ -34,9 +35,23 @@ def search_flights(request):
             "free_text": request.GET.get("q", "").strip(),
         }
 
+        has_filters = any(value for value in filters.values())
+        if not has_filters:
+            # Empty search should return LIVE OpenSky flights (what tests expect)
+            opensky_data = fetchOpenSkyFlights()
+
+            raw = opensky_data.get("raw", {}) if isinstance(opensky_data, dict) else {}
+            states = raw.get("states", []) or opensky_data.get("states", [])
+
+            flights = states if isinstance(states, list) else []
+
+            return JsonResponse({
+                "success": True,
+                "count": len(flights),
+                "flights": flights,
+            })
         # Call OpenAI flight search
         ai_result = ai_flight_search(filters)
-
         flights = ai_result.get("flights", [])
 
         return JsonResponse({

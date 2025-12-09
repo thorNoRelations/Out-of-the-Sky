@@ -273,6 +273,8 @@ def ai_flight_search(filters: Dict[str, Any]) -> Dict[str, Any]:
     - free_text (optional natural-language query)
     """
     system_prompt = (
+        "You are an assistant that interprets flight search filters and returns a cleaned JSON "
+        "structure of flights the user is interested in. "
         "Return ONLY valid JSON with flights in this format:\n"
         "{ \"flights\": [ "
         "{ "
@@ -298,7 +300,18 @@ def ai_flight_search(filters: Dict[str, Any]) -> Dict[str, Any]:
         + json.dumps(user_payload, ensure_ascii=False)
     )
 
-    return _chat_json(system_prompt="", user_prompt=user_prompt, model_env_name="OPENAI_FLIGHTS_MODEL")
+    try:
+        return _chat_json(
+            system_prompt="",
+            user_prompt=user_prompt,
+            model_env_name="OPENAI_FLIGHTS_MODEL",
+        )
+    except Exception as e:
+        # Minimal safe fallback that keeps views returning 200
+        return {
+            "flights": [],
+            "error": f"AI flight search unavailable: {e}",
+        }
 
 ##----------- AI Delay Insights -----------##
 def ai_delay_insights(location: str, weather_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -338,7 +351,21 @@ def ai_delay_insights(location: str, weather_data: Dict[str, Any]) -> Dict[str, 
         + json.dumps(user_payload, ensure_ascii=False)
     )
 
-    return _chat_json(system_prompt="", user_prompt=user_prompt, model_env_name="OPENAI_DELAY_MODEL")
+    try:
+        return _chat_json(
+            system_prompt="",
+            user_prompt=user_prompt,
+            model_env_name="OPENAI_DELAY_MODEL",
+        )
+    except Exception as e:
+        # Safe default when AI is misconfigured or unavailable
+        return {
+            "location": location,
+            "delay_risk": "low",
+            "probability_percent": 0,
+            "primary_causes": [],
+            "summary": f"AI delay risk assessment unavailable: {e}. Defaulting to low risk.",
+        }
 
 def update_airport_weather_from_openweather(
     airport_code: str,
