@@ -11,27 +11,28 @@ from django.utils import timezone
 PROVIDER = "openweathermap"
 BASE_URL = "https://api.openweathermap.org/data/2.5/weather"
 
+
 def _norm_key(q: str) -> str:
     return (q or "").strip().lower()
 
 
 class OpenWeatherClient:
     """Minimal client that ONLY calls OpenWeather /weather, logs usage, and saves the latest payload."""
-    
+
     def __init__(self):
         # Get API key directly from environment variable (same as settings.py)
         self.api_key = os.environ.get("OPENWEATHER_API_KEY", "").strip('"\'')
-        
+
         # Fallback to Django settings if not in environment
         if not self.api_key:
             self.api_key = getattr(settings, 'OPENWEATHER_API_KEY', None)
             if self.api_key:
                 self.api_key = self.api_key.strip('"\'')
-        
+
         # Get units from environment or settings
-        self.units = os.environ.get("WEATHER_UNITS", 
+        self.units = os.environ.get("WEATHER_UNITS",
                                     getattr(settings, 'WEATHER_UNITS', 'imperial')).strip('"\'')
-        
+
         # Enhanced error message with debugging info
         if not self.api_key:
             env_keys = [k for k in os.environ.keys() if 'WEATHER' in k.upper() or 'OPEN' in k.upper()]
@@ -49,7 +50,7 @@ class OpenWeatherClient:
                 f"  3. Redeploy your application on Render\n"
             )
             raise RuntimeError(error_msg)
-        
+
         # Validate key format
         if len(self.api_key) < 20:
             raise RuntimeError(
@@ -63,12 +64,12 @@ class OpenWeatherClient:
 
         params = {"q": q.strip(), "appid": self.api_key, "units": self.units}
         t0 = time.time()
-        
+
         try:
             resp = requests.get(BASE_URL, params=params, timeout=15)
         except requests.exceptions.RequestException as e:
             raise RuntimeError(f"Network error calling OpenWeather API: {str(e)}")
-        
+
         latency_ms = int((time.time() - t0) * 1000)
 
         content_len = None
@@ -78,7 +79,7 @@ class OpenWeatherClient:
             pass
 
         endpoint = "/data/2.5/weather"
-        
+
         if resp.status_code != 200:
             error_message = None
             try:
@@ -96,7 +97,7 @@ class OpenWeatherClient:
                 error_message=error_message,
             )
             bump_api_usage(PROVIDER)
-            
+
             # Provide helpful error messages
             if resp.status_code == 401:
                 raise RuntimeError(
@@ -115,7 +116,7 @@ class OpenWeatherClient:
                 )
 
         data = resp.json()
-        
+
         # Log successful request
         APIRequestLog.objects.create(
             provider=PROVIDER,
@@ -125,7 +126,7 @@ class OpenWeatherClient:
             latency_ms=latency_ms,
         )
         bump_api_usage(PROVIDER)
-        
+
         # Save latest payload for weather map
         key = _norm_key(q)
         obj, _ = AirportWeather.objects.get_or_create(
@@ -144,24 +145,24 @@ def fetchOpenSkyFlights(bbox=None, icao24=None):
     icao24: specific aircraft identifier
     """
     import requests
-    
+
     base_url = "https://opensky-network.org/api/states/all"
     params = {}
-    
+
     if bbox:
         params['lamin'] = bbox[0]
         params['lomin'] = bbox[1]
         params['lamax'] = bbox[2]
         params['lomax'] = bbox[3]
-    
+
     if icao24:
         params['icao24'] = icao24
-    
+
     try:
         response = requests.get(base_url, params=params, timeout=10)
         response.raise_for_status()
         return response.json()
-    except Exception as e:
+    except Exception:
         # Return empty structure if API fails
         return {'time': None, 'states': []}
 

@@ -1,13 +1,10 @@
+
 from . import views
 from django.urls import path
 from .views import api_usage_readout
 
 app_name = 'home'
 
-from .ai_views import (
-    predict_delay, recommend_routes,
-    delay_prediction_page, route_optimizer_page
-)
 
 urlpatterns = [
     path('', views.index, name='index'),

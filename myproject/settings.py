@@ -33,7 +33,7 @@ TESTING = (
 # =============================================================================
 
 SECRET_KEY = os.environ.get(
-    "DJANGO_SECRET_KEY", 
+    "DJANGO_SECRET_KEY",
     "django-insecure-dev-only-key-change-in-production"
 )
 
@@ -189,7 +189,7 @@ OPENAI_API_KEY = os.environ.get("OPEN_AI_KEY", "").strip('"\'')
 
 # API Usage Budgets
 BUDGET_OPENWEATHERMAP_PER_DAY = int(
-    os.environ.get("OPENWEATHER_DAILY_QUOTA", 
+    os.environ.get("OPENWEATHER_DAILY_QUOTA",
                    os.environ.get("BUDGET_OPENWEATHERMAP_PER_DAY", "2000"))
 )
 BUDGET_AVIATIONWEATHER_PER_DAY = int(

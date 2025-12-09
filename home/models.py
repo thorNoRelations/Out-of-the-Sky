@@ -1,7 +1,5 @@
 from django.db import models
 # models.py
-from django.db import models
-from django.utils import timezone
 from django.contrib.auth.models import User
 
 
@@ -94,6 +92,7 @@ class TrackedFlight(models.Model):
     def get_arrival_time(self):
         return self.estimated_arrival or self.scheduled_arrival
 
+
 class AirportWeather(models.Model):
     """
     Model to store weather information for airports
@@ -109,14 +108,14 @@ class AirportWeather(models.Model):
         ('fog', 'Fog'),
         ('wind', 'Windy'),
     ]
-    
+
     DELAY_RISK_CHOICES = [
         ('low', 'Low Risk'),
         ('moderate', 'Moderate Risk'),
         ('high', 'High Risk'),
         ('severe', 'Severe Risk'),
     ]
-    
+
     # Airport information
     airport_code = models.CharField(
         max_length=10,
@@ -126,7 +125,7 @@ class AirportWeather(models.Model):
         max_length=100,
         help_text="Full airport name"
     )
-    
+
     # Weather data
     condition = models.CharField(
         max_length=20,
@@ -149,7 +148,7 @@ class AirportWeather(models.Model):
         default=0,
         help_text="Chance of precipitation (0-100%)"
     )
-    
+
     # Delay prediction
     delay_risk = models.CharField(
         max_length=20,
@@ -165,7 +164,7 @@ class AirportWeather(models.Model):
         default=0,
         help_text="Estimated delay in minutes"
     )
-    
+
     # Forecast information
     forecast_time = models.DateTimeField(
         help_text="Time this forecast is for"
@@ -174,7 +173,7 @@ class AirportWeather(models.Model):
         blank=True,
         help_text="Detailed forecast description"
     )
-    
+
     # Metadata
     last_updated = models.DateTimeField(
         auto_now=True,
@@ -184,15 +183,15 @@ class AirportWeather(models.Model):
         auto_now_add=True,
         help_text="When this weather record was created"
     )
-    
+
     class Meta:
         ordering = ['forecast_time']
         # Prevent duplicate forecasts for same airport/time
         unique_together = ['airport_code', 'forecast_time']
-    
+
     def __str__(self):
         return f"{self.airport_code} - {self.condition} at {self.forecast_time}"
-    
+
     # Helper method to get weather icon emoji
     def get_weather_icon(self):
         """Return emoji icon for weather condition"""
@@ -208,23 +207,23 @@ class AirportWeather(models.Model):
             'wind': '💨',
         }
         return icons.get(self.condition, '🌤️')
-    
+
     # Helper method to get delay risk color
     def get_risk_color(self):
         """Return CSS color class for delay risk"""
         colors = {
             'low': 'success',      # Green
-            'moderate': 'warning', # Yellow
+            'moderate': 'warning',  # Yellow
             'high': 'danger',      # Orange
             'severe': 'critical',  # Red
         }
         return colors.get(self.delay_risk, 'info')
-    
+
     # Check if weather is suitable for flying
     def is_flight_friendly(self):
         """Determine if weather conditions are good for flying"""
         return (
-            self.delay_risk in ['low', 'moderate'] and
-            self.visibility >= 3.0 and
-            self.condition not in ['thunderstorm', 'heavy_rain', 'snow']
+            self.delay_risk in ['low', 'moderate']
+            and self.visibility >= 3.0
+            and self.condition not in ['thunderstorm', 'heavy_rain', 'snow']
         )

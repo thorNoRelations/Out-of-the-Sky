@@ -8,19 +8,18 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.shortcuts import render
 from datetime import datetime, timedelta
-import json
+# import json
 
 from backend.APICalls import OpenWeatherClient
 from backend.ai_models import DelayPredictor, RouteOptimizer
 from backend.openai_flight_service import get_flight_service
-from home.models import TrackedFlight
 
 
 @require_http_methods(["GET"])
 def predict_delay(request):
     """
     API endpoint for flight delay prediction.
-    
+
     Query params:
         - flight_number: Flight number (optional)
         - origin: Origin airport code (optional, defaults to DEN)
@@ -28,15 +27,15 @@ def predict_delay(request):
         - departure_time: ISO format datetime (optional)
         - airline: Airline name (optional)
     """
-    
+
     try:
         # Get request parameters with defaults
         origin = request.GET.get('origin', 'DEN').strip().upper()
         destination = request.GET.get('destination', 'LAX').strip().upper()
         departure_time_str = request.GET.get('departure_time', '')
         airline = request.GET.get('airline', 'United Airlines')
-        flight_number = request.GET.get('flight_number', f'UA{hash(origin+destination) % 900 + 100}')
-        
+        flight_number = request.GET.get('flight_number', f'UA{hash(origin + destination) % 900 + 100}')
+
         # Parse departure time
         if departure_time_str:
             try:
@@ -45,10 +44,10 @@ def predict_delay(request):
                 departure_time = datetime.now() + timedelta(hours=2)
         else:
             departure_time = datetime.now() + timedelta(hours=2)
-        
+
         # Get flight service
         flight_service = get_flight_service()
-        
+
         # Get flight info
         flight_info = flight_service.get_flight_info(
             flight_number=flight_number,
@@ -56,12 +55,12 @@ def predict_delay(request):
             destination=destination,
             date=departure_time
         )
-        
+
         # Get weather data for origin
         weather_client = OpenWeatherClient()
         try:
             weather_data = weather_client.fetch_city(f"{origin},US")
-        except Exception as e:
+        except Exception:
             # If weather API fails, use defaults
             weather_data = {
                 'main': {'temp': 65},
@@ -69,7 +68,7 @@ def predict_delay(request):
                 'visibility': 10000,
                 'weather': [{'main': 'Clear'}]
             }
-        
+
         # Prepare flight data
         flight_data = {
             'flight_number': flight_info.get('flight_number', flight_number),
@@ -78,10 +77,10 @@ def predict_delay(request):
             'scheduled_departure': departure_time,
             'airline': flight_info.get('airline', airline)
         }
-        
+
         # Get airline statistics
         airline_stats = flight_service.get_airline_stats(flight_data['airline'])
-        
+
         # Run prediction
         predictor = DelayPredictor()
         prediction = predictor.predict_delay_probability(
@@ -89,7 +88,7 @@ def predict_delay(request):
             weather_data=weather_data,
             airline_stats=airline_stats
         )
-        
+
         return JsonResponse({
             'success': True,
             'prediction': prediction,
@@ -104,7 +103,7 @@ def predict_delay(request):
                 'terminal': flight_info.get('terminal')
             }
         })
-        
+
     except Exception as e:
         return JsonResponse({
             'success': False,
@@ -116,18 +115,18 @@ def predict_delay(request):
 def recommend_routes(request):
     """
     API endpoint for route recommendations.
-    
+
     Query params:
         - origin: Origin airport code (optional, defaults to DEN)
         - destination: Destination airport code (optional, defaults to LAX)
         - date: Departure date (YYYY-MM-DD) (optional)
     """
-    
+
     try:
         origin = request.GET.get('origin', 'DEN').strip().upper()
         destination = request.GET.get('destination', 'LAX').strip().upper()
         date_str = request.GET.get('date', '')
-        
+
         # Parse date
         if date_str:
             try:
@@ -136,21 +135,21 @@ def recommend_routes(request):
                 departure_date = datetime.now()
         else:
             departure_date = datetime.now()
-        
+
         # Get flight service
         flight_service = get_flight_service()
-        
+
         # Get available routes
         available_routes = flight_service.get_available_routes(
             origin=origin,
             destination=destination,
             date=departure_date
         )
-        
+
         # Initialize optimizer
         predictor = DelayPredictor()
         optimizer = RouteOptimizer(predictor)
-        
+
         # Get recommendations
         recommendations = optimizer.recommend_routes(
             origin=origin,
@@ -158,7 +157,7 @@ def recommend_routes(request):
             departure_date=departure_date,
             available_routes=available_routes
         )
-        
+
         return JsonResponse({
             'success': True,
             'origin': origin,
@@ -166,7 +165,7 @@ def recommend_routes(request):
             'date': departure_date.date().isoformat(),
             'routes': recommendations
         })
-        
+
     except Exception as e:
         return JsonResponse({
             'success': False,
@@ -203,9 +202,9 @@ def generate_mock_routes(origin: str, destination: str, departure_date: datetime
     Generate mock route options.
     In production, this would query actual flight schedules.
     """
-    
+
     base_time = departure_date.replace(hour=8, minute=0)
-    
+
     routes = [
         {
             'route_id': 1,
@@ -270,7 +269,7 @@ def generate_mock_routes(origin: str, destination: str, departure_date: datetime
             'direct': False
         }
     ]
-    
+
     return routes
 
 

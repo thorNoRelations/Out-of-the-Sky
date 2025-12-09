@@ -1,10 +1,9 @@
-from django.contrib import admin
-
 # Register your models here.
 from django.contrib import admin
 from .models import ApiUsage
 from .models import TrackedFlight
 from backend.models import APIRequestLog, AirportWeather
+
 
 @admin.register(APIRequestLog)
 class APIRequestLogAdmin(admin.ModelAdmin):
@@ -12,11 +11,13 @@ class APIRequestLogAdmin(admin.ModelAdmin):
     list_filter = ("provider", "status_code", "endpoint", "created_at")
     search_fields = ("error_message",)
 
+
 @admin.register(ApiUsage)
 class ApiUsageAdmin(admin.ModelAdmin):
     list_display = ("yyyymmdd", "provider", "count")
     list_filter = ("provider", "yyyymmdd")
     ordering = ("-yyyymmdd", "provider")
+
 
 @admin.register(AirportWeather)
 class AirportWeatherAdmin(admin.ModelAdmin):

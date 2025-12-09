@@ -10,7 +10,7 @@ urlpatterns = [
     path('', include('home.urls')),
     path('search/', include('search.urls')),  # ADDED: Search app URLs
     path('api/', include('myproject.api_urls')),
-    
+
 
 ]
 

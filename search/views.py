@@ -2,8 +2,8 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from backend.APICalls import fetchOpenSkyFlights
-from django.views.decorators.http import require_http_methods
-import json
+# import json
+
 
 def search(request):
     """
@@ -29,7 +29,7 @@ def search_flights(request):
     origin = request.GET.get('origin', '').strip()
     destination = request.GET.get('destination', '').strip()
     status = request.GET.get('status', '').strip()
-    
+
     # Mock flight data - Replace with actual database queries
     mock_flights = [
         {
@@ -103,30 +103,31 @@ def search_flights(request):
             'gate': 'B7',
         },
     ]
-    
+
     # Filter flights based on search parameters
     results = mock_flights
-    
+
     if flight_number:
         results = [f for f in results if flight_number.upper() in f['flight_number'].upper()]
-    
+
     if airline:
         results = [f for f in results if airline.lower() in f['airline'].lower()]
-    
+
     if origin:
         results = [f for f in results if origin.upper() in f['origin'].upper()]
-    
+
     if destination:
         results = [f for f in results if destination.upper() in f['destination'].upper()]
-    
+
     if status:
         results = [f for f in results if f['status'] == status]
-    
+
     return JsonResponse({
         'success': True,
         'count': len(results),
         'flights': results
     })
+
 
 def interactive_map(request):
     """
@@ -142,8 +143,6 @@ def interactive_map(request):
     return render(request, 'search/interactive_map.html', context)
 
 
-
-
 @require_http_methods(["GET"])
 def get_flight_details(request, icao24):
     """
@@ -151,16 +150,16 @@ def get_flight_details(request, icao24):
     """
     try:
         flight_data = fetchOpenSkyFlights(icao24=icao24)
-        
+
         states = flight_data.get('states', [])
         if not states or len(states) == 0:
             return JsonResponse({
                 'success': False,
                 'error': 'Flight not found'
             }, status=404)
-        
+
         state = states[0]
-        
+
         details = {
             'icao24': state[0],
             'callsign': (state[1] or '').strip(),
@@ -174,18 +173,19 @@ def get_flight_details(request, icao24):
             'vertical_rate': state[11],
             'last_contact': state[4],
         }
-        
+
         return JsonResponse({
             'success': True,
             'flight': details
         })
-        
+
     except Exception as e:
         return JsonResponse({
             'success': False,
             'error': str(e)
         }, status=500)
-    
+
+
 @require_http_methods(["GET"])
 def get_live_flights(request):
     """
@@ -195,7 +195,7 @@ def get_live_flights(request):
     try:
         bounds_str = request.GET.get('bounds', '')
         bbox = None
-        
+
         if bounds_str:
             try:
                 coords = [float(x.strip()) for x in bounds_str.split(',')]
@@ -203,28 +203,28 @@ def get_live_flights(request):
                     bbox = tuple(coords)
             except (ValueError, AttributeError):
                 pass
-        
+
         if bbox is None:
             bbox = (24.396308, -125.0, 49.384358, -66.93457)
-        
+
         print("=" * 50)
         print(f"🗺️ Requesting flights with bbox: {bbox}")
-        
+
         opensky_data = fetchOpenSkyFlights(bbox=bbox)
-        
+
         print(f"📡 OpenSky raw response keys: {opensky_data.keys()}")
-        
+
         raw_data = opensky_data.get('raw', {})
         states = raw_data.get('states', [])
-        
+
         print(f"✈️ Number of states found: {len(states) if states else 0}")
-        
+
         flights = []
-        
+
         for state in states:
             if len(state) < 11:
                 continue
-            
+
             icao24 = state[0]
             callsign = (state[1] or '').strip()
             longitude = state[5]
@@ -232,13 +232,13 @@ def get_live_flights(request):
             altitude = state[7]
             velocity = state[9]
             heading = state[10]
-            
+
             if longitude is None or latitude is None:
                 continue
-            
+
             altitude_ft = int(altitude * 3.28084) if altitude else 0
             speed_knots = int(velocity * 1.94384) if velocity else 0
-            
+
             flight_data = {
                 'icao24': icao24,
                 'callsign': callsign or 'N/A',
@@ -249,24 +249,24 @@ def get_live_flights(request):
                 'heading': heading if heading else 0,
                 'status': 'airborne',
             }
-            
+
             flights.append(flight_data)
-        
+
         # Limit to 50 flights - randomly sample for variety
         if len(flights) > 100:
             import random
             flights = random.sample(flights, 100)
-        
+
         print(f"🎯 Total flights to return: {len(flights)}")
         print("=" * 100)
-        
+
         return JsonResponse({
             'success': True,
             'count': len(flights),
             'flights': flights,
             'timestamp': raw_data.get('time', None)
         })
-        
+
     except Exception as e:
         print("=" * 100)
         print(f"❌ ERROR in get_live_flights: {e}")

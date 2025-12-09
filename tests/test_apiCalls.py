@@ -6,13 +6,17 @@ from backend.models import APIRequestLog, AirportWeather
 
 pytestmark = pytest.mark.django_db
 
+
 class DummyResp:
     def __init__(self, status_code=200, payload=None, text="", headers=None):
         self.status_code = status_code
         self._payload = payload or {}
         self.text = text or json.dumps(self._payload)
         self.headers = headers or {"Content-Length": str(len(self.text)), "Content-Type": "application/json"}
-    def json(self): return self._payload
+
+    def json(self):
+        return self._payload
+
 
 def test_missing_api_key_raises(settings, monkeypatch):
     # Ensure no key in settings or env
@@ -23,6 +27,7 @@ def test_missing_api_key_raises(settings, monkeypatch):
     with pytest.raises(RuntimeError) as e:
         OpenWeatherClient()
     assert "OPENWEATHER_API_KEY" in str(e.value)
+
 
 def test_success_logs_one_call(monkeypatch, settings):
     settings.OPENWEATHER_API_KEY = "dummy"
@@ -52,11 +57,12 @@ def test_success_logs_one_call(monkeypatch, settings):
     assert log.status_code == 200
     assert log.latency_ms is not None
 
+
 def test_error_is_logged_and_raised(monkeypatch, settings):
     settings.OPENWEATHER_API_KEY = "dummy"
 
     def fake_get(url, params=None, timeout=15):
-        return DummyResp(401, {"cod":401, "message":"Invalid API key"})
+        return DummyResp(401, {"cod": 401, "message": "Invalid API key"})
 
     with patch("backend.APICalls.requests.get", new=fake_get):
         client = OpenWeatherClient()
@@ -69,7 +75,8 @@ def test_error_is_logged_and_raised(monkeypatch, settings):
     assert logs[0].status_code == 401
     assert "Invalid API key" in (logs[0].error_message or "")
 
-def test_success_logs_one_call(monkeypatch, settings):
+
+def test_success_logs_and_saves_weather(monkeypatch, settings):
     settings.OPENWEATHER_API_KEY = "dummy"
     settings.WEATHER_UNITS = "metric"
 

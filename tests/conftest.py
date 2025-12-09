@@ -12,6 +12,7 @@ os.environ.setdefault("AIRLABS_API_KEY", "airlabs_test")
 os.environ.setdefault("MAPBOX_API_KEY", "mapbox_test")
 os.environ.setdefault("OPENSTREETMAP_EMAIL", "tester@example.com")
 
+
 @pytest.fixture(autouse=True)
 def _setup_env(settings):
     # ensure backend app is in INSTALLED_APPS for tests
