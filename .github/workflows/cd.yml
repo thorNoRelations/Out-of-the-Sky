@@ -40,8 +40,9 @@ jobs:
           echo "🚀 Triggering Render deployment..."
           RESPONSE=$(curl -s -o response.txt -w "%{http_code}" -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}")
           
-          if [ $RESPONSE -eq 200 ] || [ $RESPONSE -eq 201 ]; then
-            echo "✅ Deployment triggered successfully!"
+          if [ $RESPONSE -eq 200 ] || [ $RESPONSE -eq 201 ] || [ $RESPONSE -eq 202 ]; then
+            echo "✅ Deployment triggered successfully! (Status: $RESPONSE)""
+         
           else
             echo "❌ Failed to trigger deployment. Status code: $RESPONSE"
             cat response.txt
