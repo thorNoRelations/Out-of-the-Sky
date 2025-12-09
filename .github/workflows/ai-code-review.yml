@@ -14,7 +14,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -33,10 +33,10 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install OpenAI SDK (correct)
+      - name: Install OpenAI SDK (FIXED)
         run: |
           python -m pip install --upgrade pip
-          pip install --no-cache-dir "openai>=1.30.0"
+          pip install --no-cache-dir "openai==1.40.6" "httpx==0.27.0"
 
           python - << 'EOF'
           import openai, httpx
@@ -53,26 +53,21 @@ jobs:
           python - << 'EOF'
           import os
           import sys
-          import json
           from openai import OpenAI
 
-          # Initialize OpenAI client
-          api_key = os.environ.get('OPENAI_API_KEY')
+          api_key = os.environ.get("OPENAI_API_KEY")
           if not api_key:
               print("⚠️ OPENAI_API_KEY not set. Skipping AI review.")
               sys.exit(0)
 
           client = OpenAI(api_key=api_key)
-
-          # Get changed files from environment
-          changed_files = os.environ.get('CHANGED_FILES', '').split()
+          changed_files = os.environ.get("CHANGED_FILES", "").split()
 
           if not changed_files:
-              print("No Python files changed. Skipping review.")
+              print("No files changed. Skipping review.")
               sys.exit(0)
 
-          print(f"📝 Reviewing {len(changed_files)} changed files...")
-
+          print(f"📝 Reviewing {len(changed_files)} files...")
           reviews = []
 
           for file_path in changed_files:
@@ -80,133 +75,29 @@ jobs:
                   continue
 
               try:
-                  with open(file_path, 'r', encoding='utf-8') as f:
-                      file_content = f.read()
+                  with open(file_path, "r", encoding="utf-8") as f:
+                      content = f.read()
 
-                  # Skip if file is too large (>10KB)
-                  if len(file_content) > 10000:
+                  if len(content) > 10000:
                       print(f"⏭️ Skipping {file_path} (too large)")
                       continue
 
                   print(f"🔍 Analyzing {file_path}...")
 
-                  # Create prompt for code review
-                  prompt = f"""You are an expert code reviewer. Review the following code and provide constructive feedback focusing on:
+                  prompt = f"""
+You are an expert code reviewer.
 
-          1. **Code Quality**: Readability, maintainability, and best practices
-          2. **Security Issues**: Potential vulnerabilities or security concerns
-          3. **Performance**: Inefficient code or optimization opportunities
-          4. **Bugs**: Potential logical errors or edge cases
-          5. **Django Best Practices**: Framework-specific improvements (if applicable)
+Review this file:
+{file_path}
 
-          File: {file_path}
+Focus on:
+- Code Quality
+- Security
+- Performance
+- Bugs
+- Django Best Practices (if applicable)
 
-          ```
-          {file_content}
-          ```
+Provide:
+- Overall assessment
+- 3–5 actionable improvements (ranked by severity)
 
-          Provide a concise review with:
-          - Overall assessment (Good/Needs Improvement/Critical Issues)
-          - 3-5 specific, actionable suggestions
-          - Prioritize findings by severity
-
-          Format as markdown."""
-
-                  # Call OpenAI API
-                  response = client.responses.create(
-                      model="gpt-4o-mini",
-                      input=[
-                          {
-                              "role": "system",
-                              "content": "You are an expert code reviewer specializing in Python, Django, and web development."
-                          },
-                          {
-                              "role": "user",
-                              "content": prompt
-                          }
-                      ],
-                      temperature=0.3,
-                      max_output_tokens=1000
-                  )
-                  
-                  review_text = response.output_text
-                  reviews.append({
-                      'file': file_path,
-                      'review': review_text
-                  })
-
-                  print(f"✅ Reviewed {file_path}")
-
-              except Exception as e:
-                  print(f"❌ Error reviewing {file_path}: {str(e)}")
-                  continue
-
-          # Generate summary comment
-          if reviews:
-              comment = "## 🤖 AI Code Review\n\n"
-              comment += f"Analyzed **{len(reviews)}** file(s) using OpenAI GPT-4o-mini.\n\n"
-              comment += "---\n\n"
-
-              for review in reviews:
-                  comment += f"### 📄 `{review['file']}`\n\n"
-                  comment += review['review']
-                  comment += "\n\n---\n\n"
-
-              comment += "\n*This review was generated automatically by AI. Please use your judgment when applying suggestions.*"
-
-              # Save review to file for posting
-              with open('ai_review.txt', 'w', encoding='utf-8') as f:
-                  f.write(comment)
-
-              print("\n" + "="*50)
-              print("AI CODE REVIEW SUMMARY")
-              print("="*50)
-              print(comment)
-
-          else:
-              print("No files to review.")
-
-          EOF
-
-      - name: Post AI review comment
-        if: hashFiles('ai_review.txt') != ''
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const fs = require('fs');
-
-            if (!fs.existsSync('ai_review.txt')) {
-              console.log('No review file found');
-              return;
-            }
-
-            const review = fs.readFileSync('ai_review.txt', 'utf8');
-
-            // Check if review is too long for a single comment (max ~65k chars)
-            if (review.length > 65000) {
-              const truncated = review.substring(0, 64000) + '\n\n... (review truncated due to length)';
-              await github.rest.issues.createComment({
-                issue_number: context.issue.number,
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                body: truncated
-              });
-            } else {
-              await github.rest.issues.createComment({
-                issue_number: context.issue.number,
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                body: review
-              });
-            }
-
-            console.log('✅ AI review posted to PR');
-
-      - name: Save review artifacts
-        if: always()
-        uses: actions/upload-artifact@v5
-        with:
-          name: ai-code-review
-          path: ai_review.txt
-          if-no-files-found: ignore
