@@ -102,22 +102,16 @@ WSGI_APPLICATION = 'myproject.wsgi.application'
 # DATABASE
 # =============================================================================
 
-#  Production on Render - Persistent Disk
-if os.environ.get("RENDER") == "true":
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": "/var/data/db.sqlite3",
-        }
+
+data_dir = Path(os.environ.get("RENDER_DATA_DIR", BASE_DIR))
+db_path = data_dir / "db.sqlite3"
+
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": db_path,
     }
-# Local Development
-else:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
-        }
-    }
+}
 
 # =============================================================================
 # PASSWORD VALIDATION
