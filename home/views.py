@@ -11,7 +11,7 @@ from datetime import timezone as _tz, datetime
 from .models import ApiUsage
 from .models import TrackedFlight
 from django.views.decorators.http import require_http_methods
-from backend.APICalls import OpenWeatherClient, fetchOpenSkyFlights
+from backend.APICalls import OpenWeatherClient, ai_delay_insights, fetchOpenSkyFlights
 
 
 def index(request):
@@ -78,59 +78,99 @@ def track_flight(request, flight_number):
 
     return redirect('profile')
 
-
 def weather_insights(request):
     q = (request.GET.get("q") or request.GET.get("search") or "").strip()
-    weather = None         # keep if you also show the small banner at top
-    airports_weather = []  # <-- template expects this list
+    weather = None
+    airports_weather = []
     error = None
 
     if q:
         try:
             data = OpenWeatherClient().fetch_city(q)
 
-            # small banner (optional)
+            # -------------------------
+            # Top banner (FAHRENHEIT)
+            # -------------------------
             weather = {
                 "city": data.get("name"),
                 "country": (data.get("sys") or {}).get("country"),
-                "temp": (data.get("main") or {}).get("temp"),
+                "temp": round((data.get("main") or {}).get("temp", 0)),  # ✅ Fahrenheit
                 "condition": ((data.get("weather") or [{}])[0] or {}).get("description"),
             }
 
-            # build the list item the template loops over
+            # -------------------------
+            # VISIBILITY FIX (meters → miles)
+            # -------------------------
+            raw_visibility = data.get("visibility", 16093)  # meters
+            visibility_miles = round(raw_visibility / 1609.34, 1)
+
+            # -------------------------
+            # AI RISK ASSESSMENT HOOKED UP
+            # -------------------------
+            ai_result = ai_delay_insights(
+                location=data.get("name", q),
+                weather_data=data
+            )
+
+            delay_risk = ai_result.get("delay_risk", "low")
+            delay_probability = int(ai_result.get("probability_percent", 0))
+            forecast_description = ai_result.get("summary", "")
+
+            # Delay minutes mapping
+            if delay_probability >= 80:
+                est_delay = 60
+            elif delay_probability >= 60:
+                est_delay = 45
+            elif delay_probability >= 40:
+                est_delay = 30
+            elif delay_probability >= 20:
+                est_delay = 15
+            else:
+                est_delay = 0
+
+            # -------------------------
+            # ✅ LIST ITEM FOR TEMPLATE
+            # -------------------------
             w = data.get("weather") or [{}]
             desc = (w[0] or {}).get("description", "")
+
             airports_weather = [{
-                "airport_code": q.upper(),                          # e.g. "DENVER,US"
-                "airport_name": data.get("name"),                   # "Denver"
-                "temperature": (data.get("main") or {}).get("temp"),
-                "wind_speed": (data.get("wind") or {}).get("speed"),
-                "visibility": data.get("visibility"),               # template prints "mi" – set units as you like
-                "precipitation_chance": 0,                          # /weather often lacks POP; default 0
+                "airport_code": q.upper(),
+                "airport_name": data.get("name"),
+
+                # ✅ FAHRENHEIT
+                "temperature": round((data.get("main") or {}).get("temp", 0)),
+
+                "wind_speed": round((data.get("wind") or {}).get("speed", 0)),
+
+                # ✅ VISIBILITY IN MILES
+                "visibility": visibility_miles,
+
+                "precipitation_chance": 0,
                 "forecast_time": datetime.fromtimestamp(data.get("dt", 0)),
-                "delay_risk": "low",                                # string used in class "risk-{{ weather.delay_risk }}"
-                "delay_probability": 0,
-                "estimated_delay_minutes": 0,
-                "forecast_description": desc.title(),
+
+                # ✅ REAL AI DATA (NO MORE HARDCODED VALUES)
+                "delay_risk": delay_risk,
+                "delay_probability": delay_probability,
+                "estimated_delay_minutes": est_delay,
+                "forecast_description": forecast_description or desc.title(),
+
                 "last_updated": timezone.now(),
 
-                # fields the template *calls* but are fine as plain strings
+                # template helpers
                 "get_weather_icon": "🌤️",
                 "get_condition_display": desc.title(),
-                "get_delay_risk_display": "Low",
+                "get_delay_risk_display": delay_risk.title(),
             }]
 
         except Exception as e:
             error = str(e)
 
     return render(request, "home/weather_insights.html", {
-        "search_query": q,
-        "weather": weather,                 # small banner at top (optional)
-        "airports_weather": airports_weather,  # <-- critical
-        "total_airports": len(airports_weather),
+        "weather": weather,
+        "airports_weather": airports_weather,
         "error": error,
     })
-
 
 def _budgets_from_env():
     return {
@@ -139,7 +179,6 @@ def _budgets_from_env():
         "aviationstack": int(os.getenv("BUDGET_AVIATIONSTACK_PER_DAY", 1000)),
         "opensky": int(os.getenv("BUDGET_OPENSKY_PER_DAY", int(os.getenv("BUDGET_OPENSPY_PER_DAY", 380)))),
     }
-
 
 @staff_member_required
 def api_usage_readout(request):

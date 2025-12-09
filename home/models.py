@@ -227,3 +227,4 @@ class AirportWeather(models.Model):
             and self.visibility >= 3.0
             and self.condition not in ['thunderstorm', 'heavy_rain', 'snow']
         )
+
