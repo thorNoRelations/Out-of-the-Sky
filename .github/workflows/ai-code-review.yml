@@ -113,23 +113,23 @@ jobs:
           Format as markdown."""
 
                   # Call OpenAI API
-                response = client.responses.create(
-                  model="gpt-4o-mini",
-                  input=[
-                      {
-                          "role": "system",
-                          "content": "You are an expert code reviewer specializing in Python, Django, and web development."
-                      },
-                      {
-                          "role": "user",
-                          "content": prompt
-                      }
-                  ],
-                  temperature=0.3,
-                  max_output_tokens=1000
-              )
-              
-              review_text = response.output_text
+                  response = client.responses.create(
+                      model="gpt-4o-mini",
+                      input=[
+                          {
+                              "role": "system",
+                              "content": "You are an expert code reviewer specializing in Python, Django, and web development."
+                          },
+                          {
+                              "role": "user",
+                              "content": prompt
+                          }
+                      ],
+                      temperature=0.3,
+                      max_output_tokens=1000
+                  )
+                  
+                  review_text = response.output_text
                   reviews.append({
                       'file': file_path,
                       'review': review_text
