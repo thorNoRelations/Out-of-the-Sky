@@ -102,12 +102,22 @@ WSGI_APPLICATION = 'myproject.wsgi.application'
 # DATABASE
 # =============================================================================
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+#  Production on Render - Persistent Disk
+if os.environ.get("RENDER") == "true":
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": "/var/data/db.sqlite3",
+        }
     }
-}
+# Local Development
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 # =============================================================================
 # PASSWORD VALIDATION
