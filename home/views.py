@@ -58,6 +58,15 @@ def track_flight(request, flight_number):
     View to track a flight for the logged-in user.
     Creates a TrackedFlight instance if it doesn't exist for the user.
     """
+    # Mock flight data - same as in search/views.py
+    mock_flights = {
+        'AA101': {'origin_city': 'New York', 'destination_city': 'Los Angeles'},
+        'UA205': {'origin_city': 'Chicago', 'destination_city': 'San Francisco'},
+        'DL450': {'origin_city': 'Atlanta', 'destination_city': 'Miami'},
+        'AA102': {'origin_city': 'Los Angeles', 'destination_city': 'New York'},
+        'SW789': {'origin_city': 'Denver', 'destination_city': 'Phoenix'},
+    }
+
     # Check if the flight is already tracked by this user
     flight_exists = TrackedFlight.objects.filter(
         user=request.user,
@@ -65,13 +74,16 @@ def track_flight(request, flight_number):
     ).exists()
 
     if not flight_exists:
-        # Create a new tracked flight record
-        # In a real app, you might fetch details from an API here
+        # Get flight data from mock data, or use Unknown as fallback
+        flight_data = mock_flights.get(flight_number.upper(), {})
+        departing = flight_data.get('origin_city', 'Unknown')
+        arriving = flight_data.get('destination_city', 'Unknown')
+
         TrackedFlight.objects.create(
             user=request.user,
             flight_number=flight_number,
-            departing_city="Unknown",  # Placeholder
-            arriving_city="Unknown",  # Placeholder
+            departing_city=departing,
+            arriving_city=arriving,
             scheduled_departure=timezone.now(),
             scheduled_arrival=timezone.now() + timezone.timedelta(hours=2)
         )
