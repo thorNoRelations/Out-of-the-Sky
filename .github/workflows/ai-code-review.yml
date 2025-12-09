@@ -55,7 +55,7 @@ jobs:
           import sys
           from openai import OpenAI
 
-          api_key = os.environ.get("OPENAI_API_KEY")
+          api_key = os.environ.get("OPEN_AI_KEY")
           if not api_key:
               print("⚠️ OPENAI_API_KEY not set. Skipping AI review.")
               sys.exit(0)
